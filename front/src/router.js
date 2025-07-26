@@ -1,19 +1,25 @@
 import Home from './pages/Home';
 import MemeDetail from './pages/MemeDetail';
 import MemeCreate from './pages/MemeCreate';
+import Login from './pages/Login';
+import ProtectedRoute from './components/ProtectedRoute';
 
 const router = [
     {
         path: '/',
-        element: <Home />,
+        element: <ProtectedRoute><Home /></ProtectedRoute>,
     },
     {
         path: '/meme/new',
-        element: <MemeCreate />
+        element: <ProtectedRoute><MemeCreate /></ProtectedRoute>
     },
     {
         path: '/meme/:fileName',
-        element: <MemeDetail />,
+        element: <ProtectedRoute><MemeDetail /></ProtectedRoute>,
+    },
+    {
+        path: '/login',
+        element: <Login />
     },
 ];
 

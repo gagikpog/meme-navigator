@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useMemes } from '../context/MemeContext';
 import { IMAGE_URL } from '../config';
+import { authFetch } from '../utils/authFetch';
+import ImageWithAuth from '../components/ImageWithAuth';
 
 const MemeDetail = () => {
   const { memes, refreshMemes } = useMemes();
@@ -17,7 +19,7 @@ const MemeDetail = () => {
   const handleUpdate = async () => {
     setIsSaving(true);
     try {
-      const res = await fetch(`http://localhost:5000/api/memes/${meme.id}`, {
+      const res = await authFetch(`http://localhost:5000/api/memes/${meme.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -41,7 +43,7 @@ const MemeDetail = () => {
     if (!window.confirm('Удалить этот мем?')) return;
 
     try {
-      await fetch(`http://localhost:5000/api/memes/${meme.id}`, {
+      await authFetch(`http://localhost:5000/api/memes/${meme.id}`, {
         method: 'DELETE',
       });
       await refreshMemes();
@@ -53,7 +55,7 @@ const MemeDetail = () => {
 
   return (
     <div className="p-4 max-w-xl mx-auto">
-      <img
+      <ImageWithAuth
         src={`${IMAGE_URL}/${meme.fileName}`}
         alt={meme.fileName}
         className="w-full max-w-md object-cover rounded mb-4"

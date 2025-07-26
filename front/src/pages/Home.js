@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useMemes } from '../context/MemeContext';
 import { IMAGE_URL } from '../config';
+import ImageWithAuth from '../components/ImageWithAuth';
 
 const Home = () => {
   const { memes, loading } = useMemes();
@@ -45,7 +46,7 @@ const Home = () => {
             style={{ flexBasis: '400px', maxWidth: '100%' }}
           >
             <div className="w-full h-[300px] overflow-hidden rounded">
-              <img
+              <ImageWithAuth
                 src={`${IMAGE_URL}/${img.fileName}`}
                 alt={img.fileName}
                 className="w-full h-full object-cover"

@@ -1,5 +1,6 @@
 // src/context/MemeContext.js
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import { authFetch } from '../utils/authFetch';
 
 const MemeContext = createContext();
 
@@ -9,7 +10,7 @@ export const MemeProvider = ({ children }) => {
 
   const fetchMemes = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/memes');
+      const response = await authFetch('http://localhost:5000/api/memes');
       const data = await response.json();
       setMemes(data); // tags уже массив
     } catch (error) {

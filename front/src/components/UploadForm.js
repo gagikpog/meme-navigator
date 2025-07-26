@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useMemes } from '../context/MemeContext';
+import { authFetch } from '../utils/authFetch';
 
 const UploadForm = ({ onUpload }) => {
   const [file, setFile] = useState(null);
@@ -19,7 +20,7 @@ const UploadForm = ({ onUpload }) => {
     formData.append('tags', JSON.stringify(tags.split(',').map(tag => tag.trim()).filter(Boolean)));
 
     try {
-      const res = await fetch('http://localhost:5000/api/memes', {
+      const res = await authFetch('http://localhost:5000/api/memes', {
         method: 'POST',
         body: formData,
       });
