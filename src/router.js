@@ -1,7 +1,7 @@
 
 import { createBrowserRouter } from 'react-router-dom';
 import Home from './pages/Home';
-import Meme from './pages/Meme';
+import MemeDetail from './pages/MemeDetail';
 
 export const router = createBrowserRouter([
     {
@@ -9,7 +9,7 @@ export const router = createBrowserRouter([
         element: <Home />,
     },
     {
-        path: '/meme/:name',
-        element: <Meme />,
+        path: '/meme/:fileName',
+        element: <MemeDetail />,
     },
 ]);

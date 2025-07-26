@@ -1,11 +1,14 @@
 import { RouterProvider } from 'react-router-dom';
 import './App.css';
 import { router } from './router';
+import { MemeProvider } from './context/MemeContext';
 
 function App() {
   return (
     <div className="App">
-      <RouterProvider router={router} />
+      <MemeProvider>
+        <RouterProvider router={router} />
+      </MemeProvider>
     </div>
   );
 }
