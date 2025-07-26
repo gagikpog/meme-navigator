@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useMemes } from '../context/MemeContext';
+import { IMAGE_URL } from '../config';
 
 const Home = () => {
   const { memes, loading } = useMemes();
@@ -24,7 +25,6 @@ const Home = () => {
 
   return (
     <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4">Галерея Мемов</h1>
       <input
         type="text"
         placeholder="Поиск по тегам..."
@@ -32,6 +32,10 @@ const Home = () => {
         onChange={(e) => setSearch(e.target.value)}
         className="border p-2 mb-4 w-full rounded"
       />
+      <Link to="/meme/new" className="mb-4 inline-block text-blue-600 hover:underline">
+        + Добавить мем
+      </Link>
+
       <div className="flex flex-wrap gap-4 justify-start">
         {filteredImages.map((img) => (
           <Link
@@ -42,7 +46,7 @@ const Home = () => {
           >
             <div className="w-full h-[300px] overflow-hidden rounded">
               <img
-                src={`/images/${img.fileName}`}
+                src={`${IMAGE_URL}/${img.fileName}`}
                 alt={img.fileName}
                 className="w-full h-full object-cover"
               />
