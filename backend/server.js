@@ -18,6 +18,11 @@ app.use('/images', authMiddleware, express.static(path.join(__dirname, 'public/i
 // Routes
 app.use('/api/memes', authMiddleware, memeRoutes);
 
+// Обработка 404 - маршрут не найден
+app.use((req, res, next) => {
+  res.status(404).json({ message: 'Маршрут не найден' });
+});
+
 app.listen(PORT, () => {
   console.log(`🚀 Server running at http://localhost:${PORT}`);
 });
