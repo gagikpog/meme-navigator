@@ -4,6 +4,8 @@ import { useMemes } from '../context/MemeContext';
 import { IMAGE_URL } from '../config';
 import ImageWithAuth from '../components/ImageWithAuth';
 
+const fakeItem = Array.from({length: 10});
+
 const Home = () => {
   const { memes, loading } = useMemes();
   const [search, setSearch] = useState("");
@@ -57,6 +59,13 @@ const Home = () => {
             </p>
           </Link>
         ))}
+        {fakeItem.map(() => (
+            <div
+              className=" flex-grow"
+              style={{ flexBasis: '400px', maxWidth: '100%' }}
+            ></div>
+          )
+        )}
       </div>
     </div>
   );
