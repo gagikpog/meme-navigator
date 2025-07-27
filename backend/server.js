@@ -12,15 +12,15 @@ const PORT = process.env.PORT || 8003;
 // Middleware
 app.use(cors());
 app.use(express.json());
-app.use('/api/auth', authRoutes);
-app.use('/images', authMiddleware, express.static(path.join(__dirname, 'public/images')));
+app.use('/meme/api/auth', authRoutes);
+app.use('/meme/images', authMiddleware, express.static(path.join(__dirname, 'public/images')));
 
 // Routes
-app.use('/api/memes', authMiddleware, memeRoutes);
+app.use('/meme/api/memes', authMiddleware, memeRoutes);
 
 // Обработка 404 - маршрут не найден
 app.use((req, res, next) => {
-  res.status(404).json({ message: 'Маршрут не найден' });
+  res.status(404).json({ message: `Маршрут "${req.path}" не найден` });
 });
 
 app.listen(PORT, () => {
