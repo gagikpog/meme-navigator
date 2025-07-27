@@ -19,6 +19,11 @@ const UploadForm = ({ onUpload }) => {
     formData.append('image', file);
     formData.append('tags', JSON.stringify(tags.split(',').map(tag => tag.trim()).filter(Boolean)));
 
+    if (file.size > 10 * 1024 * 1024) {
+      alert("Слишком большой файл. Максимум — 10MB");
+      return;
+    }
+
     try {
       const res = await authFetch('/api/memes', {
         method: 'POST',
