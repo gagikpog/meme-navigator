@@ -1,2 +1,3 @@
-export const API_URL = 'http://localhost:5000';
-export const IMAGE_URL = `${API_URL}/images`;
+export const isDebug = !window.localStorage.getItem('isDebug') !== 'on';
+export const API_URL = isDebug ? 'http://localhost:8003' : 'https:/gagikpog-api.ru/meme';
+export const IMAGE_URL = '/images';

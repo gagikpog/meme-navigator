@@ -19,7 +19,7 @@ const MemeDetail = () => {
   const handleUpdate = async () => {
     setIsSaving(true);
     try {
-      const res = await authFetch(`http://localhost:5000/api/memes/${meme.id}`, {
+      const res = await authFetch(`/api/memes/${meme.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -43,7 +43,7 @@ const MemeDetail = () => {
     if (!window.confirm('Удалить этот мем?')) return;
 
     try {
-      await authFetch(`http://localhost:5000/api/memes/${meme.id}`, {
+      await authFetch(`/api/memes/${meme.id}`, {
         method: 'DELETE',
       });
       await refreshMemes();

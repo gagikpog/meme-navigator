@@ -20,7 +20,7 @@ const UploadForm = ({ onUpload }) => {
     formData.append('tags', JSON.stringify(tags.split(',').map(tag => tag.trim()).filter(Boolean)));
 
     try {
-      const res = await authFetch('http://localhost:5000/api/memes', {
+      const res = await authFetch('/api/memes', {
         method: 'POST',
         body: formData,
       });

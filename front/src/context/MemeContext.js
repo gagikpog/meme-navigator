@@ -8,9 +8,14 @@ export const MemeProvider = ({ children }) => {
   const [memes, setMemes] = useState([]);
   const [loading, setLoading] = useState(true);
 
+
   const fetchMemes = async () => {
+    if (document.location.pathname === '/login/') {
+      return;
+    }
+
     try {
-      const response = await authFetch('http://localhost:5000/api/memes');
+      const response = await authFetch('/api/memes');
       const data = await response.json();
       setMemes(data); // tags уже массив
     } catch (error) {

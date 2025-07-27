@@ -4,9 +4,10 @@ const path = require('path');
 const authMiddleware = require('./middleware/auth');
 const memeRoutes = require('./routes/memes');
 const authRoutes = require('./routes/auth');
+require('dotenv').config();
 
 const app = express();
-const PORT = 5000;
+const PORT = process.env.PORT || 8003;
 
 // Middleware
 app.use(cors());
