@@ -30,7 +30,7 @@ const MemeDetail = () => {
       if (res.ok) {
         if (res.ok) {
           await refreshMemes();
-          alert('Теги обновлены');
+          navigate(-1);
         }
       }
     } catch (err) {
