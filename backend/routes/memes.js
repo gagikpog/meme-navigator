@@ -19,7 +19,7 @@ const upload = multer({
 
 // GET all memes
 router.get('/', (req, res) => {
-  db.all('SELECT * FROM memes', [], (err, rows) => {
+  db.all('SELECT * FROM memes ORDER BY id DESC', [], (err, rows) => {
     if (err) return res.status(500).json({ error: err.message });
     res.json(rows.map(meme => ({
       ...meme,
