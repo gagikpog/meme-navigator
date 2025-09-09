@@ -46,6 +46,7 @@ const Home = () => {
             to={`/meme/${img.fileName}`}
             className="border p-2 rounded shadow-sm flex-grow"
             style={{ flexBasis: '400px', maxWidth: '100%' }}
+            title={img.description}
           >
             <div className="w-full h-[300px] overflow-hidden rounded">
               <ImageWithAuth

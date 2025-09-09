@@ -40,7 +40,7 @@ router.get('/:id', (req, res) => {
 
 // CREATE meme
 router.post('/', upload.single('image'), (req, res) => {
-  const { tags } = req.body;
+  const { tags, description  } = req.body;
   const fileName = req.file?.filename;
 
   if (!fileName) return res.status(400).json({ error: 'No image uploaded' });
@@ -48,23 +48,23 @@ router.post('/', upload.single('image'), (req, res) => {
   const tagArray = tags ? JSON.parse(tags) : [];
 
   db.run(
-    'INSERT INTO memes (fileName, tags) VALUES (?, ?)',
-    [fileName, JSON.stringify(tagArray)],
+    'INSERT INTO memes (fileName, tags, description) VALUES (?, ?, ?)',
+    [fileName, JSON.stringify(tagArray), description || ''],
     function (err) {
       if (err) return res.status(500).json({ error: err.message });
-      res.status(201).json({ id: this.lastID, fileName, tags: tagArray });
+      res.status(201).json({ id: this.lastID, fileName, tags: tagArray, description });
     }
   );
 });
 
 // UPDATE meme
 router.put('/:id', (req, res) => {
-  const { tags } = req.body;
+  const { tags, description} = req.body;
   const tagArray = tags ? JSON.stringify(tags) : '[]';
 
   db.run(
-    'UPDATE memes SET tags = ? WHERE id = ?',
-    [tagArray, req.params.id],
+    'UPDATE memes SET tags = ?, description = ? WHERE id = ?',
+    [tagArray, description || "", req.params.id],
     function (err) {
       if (err) return res.status(500).json({ error: err.message });
       res.json({ updated: this.changes });

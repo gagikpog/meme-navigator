@@ -8,7 +8,8 @@ db.serialize(() => {
     CREATE TABLE IF NOT EXISTS memes (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       fileName TEXT NOT NULL,
-      tags TEXT
+      tags TEXT,
+      description TEXT
     )
   `);
 });

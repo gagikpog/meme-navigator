@@ -12,12 +12,16 @@ const MemeDetail = () => {
   const navigate = useNavigate();
   const meme = memes.find(m => m.fileName === fileName);
 
-  const [tags, setTags] = useState('');
+  const [tags, setTags] = useState(meme?.tags.join(', ') || '');
+  const [description, setDescription] = useState(meme?.description || '');
   const [showModal, setShowModal] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
-    if (meme) setTags(meme.tags.join(', '));
+    if (meme) {
+      setTags(meme.tags.join(', '));
+      setDescription(meme.description);
+    };
   }, [meme]);
 
   if (!meme) return <div>Мем не найден</div>;
@@ -28,7 +32,7 @@ const MemeDetail = () => {
     const res = await authFetch(`/api/memes/${meme.id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ tags: tagArray }),
+      body: JSON.stringify({ tags: tagArray, description }),
     });
     if (res.ok) await refreshMemes();
     setIsSaving(false);
@@ -76,6 +80,14 @@ const MemeDetail = () => {
             placeholder="теги через запятую"
             className="border rounded w-full p-2 mb-4"
           />
+          <div className="mt-4 mb-4">
+            <label className="block">Описание:</label>
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="w-full p-2 rounded bg-gray-100"
+            />
+          </div>
           <div className="flex gap-4">
             <button
               onClick={handleSave}
