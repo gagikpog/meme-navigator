@@ -3,9 +3,10 @@ module.exports = {
     {
       name: "meme-navigator",
       script: "./server.js",
-      interpreter: "/run/user/0/fnm_multishells/2726_1757519885572/bin/node",
+      interpreter: "/root/.local/share/fnm/node-versions/v18.20.5/installation/bin/node",
       cwd: "/root/www/meme-navigator/backend",
       watch: true,
+      disabele_pm2_monitoring: true,
       ignore_watch: [
         "node_modules",
         "logs",
