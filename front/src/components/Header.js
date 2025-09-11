@@ -9,7 +9,7 @@ const Header = () => {
   };
 
   return (
-    <header className="bg-gray-100 p-4 mb-6 shadow-sm">
+    <header className="bg-gray-100 p-4 mb-6 shadow-sm sticky top-0">
       <div className="max-w-5xl mx-auto flex justify-between items-center">
         <Link to="/" className="text-2xl font-bold text-blue-600 hover:underline">
           Галерея Мемов

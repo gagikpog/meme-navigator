@@ -27,19 +27,21 @@ const Home = () => {
   if (loading) return <div className="p-4">Загрузка...</div>;
 
   return (
-    <div className="p-4">
-      <input
-        type="text"
-        placeholder="Поиск по тегам..."
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        className="border p-2 mb-4 w-full rounded"
-      />
-      <Link to="/meme/new" className="mb-4 inline-block text-blue-600 hover:underline">
-        + Добавить мем
-      </Link>
+    <div>
+      <div className='sticky top-0 bg-white p-4'>
+        <input
+          type="text"
+          placeholder="Поиск по тегам..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="border p-2 mb-4 w-full rounded"
+        />
+        <Link to="/meme/new" className="mb-4 inline-block text-blue-600 hover:underline">
+          + Добавить мем
+        </Link>
+      </div>
 
-      <div className="flex flex-wrap gap-4 justify-start">
+      <div className="flex flex-wrap gap-4 justify-start p-4">
         {filteredImages.map((img) => (
           <Link
             key={img.fileName}
