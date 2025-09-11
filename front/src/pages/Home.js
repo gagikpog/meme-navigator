@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useMemes } from '../context/MemeContext';
 import { IMAGE_URL } from '../config';
 import ImageWithAuth from '../components/ImageWithAuth';
+import compareText from '../utils/compareText';
 
 const fakeItem = Array.from({length: 10});
 
@@ -10,19 +11,7 @@ const Home = () => {
   const { memes, loading } = useMemes();
   const [search, setSearch] = useSearch();
 
-  const normalize = (str) => str.toLowerCase().trim();
-
-  const filteredImages = memes.filter(img => {
-    if ((!img.tags || img.tags.length === 0) && search === "") {
-      return true;
-    }
-
-    const normalizedSearch = normalize(search);
-
-    return img.tags?.some(tag =>
-      normalize(tag).includes(normalizedSearch)
-    );
-  });
+  const filteredImages = memes.filter((img) => compareText(img.tags, search));
 
   if (loading) return <div className="p-4">Загрузка...</div>;
 
