@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import useSearch from '../hooks/useSearch';
 import { Link } from 'react-router-dom';
 import { useMemes } from '../context/MemeContext';
 import { IMAGE_URL } from '../config';
@@ -8,7 +8,7 @@ const fakeItem = Array.from({length: 10});
 
 const Home = () => {
   const { memes, loading } = useMemes();
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useSearch();
 
   const normalize = (str) => str.toLowerCase().trim();
 
