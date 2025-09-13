@@ -55,9 +55,21 @@ const Home = () => {
                 className="w-full h-full object-cover"
               />
             </div>
-            <p className="text-sm text-gray-500 mt-1">
-              Теги: {img.tags?.join(", ") || "Без тегов"}
-            </p>
+            <div className="flex items-center gap-2 mt-1">
+              {img.permissions === 'public' && (
+                <span className="text-green-600 text-xs" title="Публичный мем">
+                  🌐
+                </span>
+              )}
+              {img.permissions === 'admin' && (
+                <span className="text-red-600 text-xs" title="Только для администраторов">
+                  🔒
+                </span>
+              )}
+              <p className="text-sm text-gray-500">
+                Теги: {img.tags?.join(", ") || "Без тегов"}
+              </p>
+            </div>
           </Link>
         ))}
         {fakeItem.map(() => (

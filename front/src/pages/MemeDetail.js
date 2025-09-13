@@ -101,18 +101,24 @@ const MemeDetail = () => {
           
           {canEdit() && (
             <div className="mt-4 mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Права доступа:
+              <label className="flex items-center gap-2 text-sm font-medium text-gray-700 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={permissions === 'public'}
+                  onChange={(e) => setPermissions(e.target.checked ? 'public' : 'admin')}
+                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  disabled={!canEdit()}
+                />
+                {permissions === 'public' ? (
+                  <span className="text-green-600">🌐</span>
+                ) : (
+                  <span className="text-red-600">🔒</span>
+                )}
+                Публичная
               </label>
-              <select
-                value={permissions}
-                onChange={(e) => setPermissions(e.target.value)}
-                className="border p-2 rounded"
-                disabled={!canEdit()}
-              >
-                <option value="admin">Только для администраторов</option>
-                <option value="public">Публичный (для всех)</option>
-              </select>
+              <p className="text-xs text-gray-500 mt-1">
+                {permissions === 'public' ? 'Мем доступен всем пользователям' : 'Мем доступен только администраторам'}
+              </p>
             </div>
           )}
           
