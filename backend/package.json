@@ -4,7 +4,9 @@
   "description": "",
   "main": "server.js",
   "scripts": {
-    "dev": "node server.js"
+    "dev": "node server.js",
+    "init-admin": "node scripts/init-admin.js",
+    "migrate": "node migrations/002_add_users_and_permissions.js"
   },
   "keywords": [],
   "author": "",

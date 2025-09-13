@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
-const authMiddleware = require('./middleware/auth');
+const { auth } = require('./middleware/auth');
 const memeRoutes = require('./routes/memes');
 const authRoutes = require('./routes/auth');
 require('dotenv').config();
@@ -14,10 +14,10 @@ app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
 app.use('/meme/api/auth', authRoutes);
-app.use('/meme/images', authMiddleware, express.static(path.join(__dirname, 'public/images')));
+app.use('/meme/images', auth, express.static(path.join(__dirname, 'public/images')));
 
 // Routes
-app.use('/meme/api/memes', authMiddleware, memeRoutes);
+app.use('/meme/api/memes', auth, memeRoutes);
 
 // Обработка 404 - маршрут не найден
 app.use((req, res, next) => {
