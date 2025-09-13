@@ -1,10 +1,13 @@
 // src/components/Header.js
 import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const Header = () => {
   const navigate = useNavigate();
-  const logout = () => {
-    localStorage.removeItem('token');
+  const { user, logout } = useAuth();
+  
+  const handleLogout = () => {
+    logout();
     navigate('/login');
   };
 
@@ -14,9 +17,15 @@ const Header = () => {
         <Link to="/" className="text-2xl font-bold text-blue-600 hover:underline">
           Галерея Мемов
         </Link>
-        <button onClick={logout} className="text-sm text-red-600 hover:underline">
-          Выйти
-        </button>
+        <div className="flex items-center gap-4">
+        {
+          user && (
+            <button onClick={handleLogout} className="text-sm text-red-600 hover:underline">
+              Выйти
+            </button>
+          )
+        }
+        </div>
       </div>
     </header>
   );

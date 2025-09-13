@@ -1,6 +1,7 @@
 import useSearch from '../hooks/useSearch';
 import { Link } from 'react-router-dom';
 import { useMemes } from '../context/MemeContext';
+import { useAuth } from '../context/AuthContext';
 import { IMAGE_URL } from '../config';
 import ImageWithAuth from '../components/ImageWithAuth';
 import compareText from '../utils/compareText';
@@ -10,6 +11,7 @@ const fakeItem = Array.from({length: 10});
 const Home = () => {
   const { memes, loading } = useMemes();
   const [search, setSearch] = useSearch();
+  const { canCreate } = useAuth();
 
   const filteredImages = memes.filter((img) => compareText(img.tags, search));
 
@@ -18,16 +20,23 @@ const Home = () => {
   return (
     <div>
       <div className='sticky top-0 bg-white p-4'>
-        <input
-          type="text"
-          placeholder="Поиск по тегам..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="border p-2 mb-4 w-full rounded"
-        />
-        <Link to="/meme/new" className="mb-4 inline-block text-blue-600 hover:underline">
-          + Добавить мем
-        </Link>
+        <div className="flex justify-between items-center mb-4">
+          <input
+            type="text"
+            placeholder="Поиск по тегам..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="border p-2 w-full rounded"
+          />
+        </div>
+        
+        {canCreate() && (
+          <Link to="/meme/new" className="mb-4 inline-block text-blue-600 hover:underline">
+            + Добавить мем
+          </Link>
+        )}
+
+        {/* TODO: Сюда добавить облоко тегов https://www.npmjs.com/package/react-wordcloud */}
       </div>
 
       <div className="flex flex-wrap gap-4 justify-start p-4">

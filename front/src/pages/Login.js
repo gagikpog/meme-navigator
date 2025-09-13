@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMemes } from '../context/MemeContext';
+import { useAuth } from '../context/AuthContext';
 import { API_URL } from '../config';
 
 const Login = () => {
@@ -8,7 +9,8 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
   const [error, setError] = useState('');
-  const {refreshMemes} = useMemes()
+  const { refreshMemes } = useMemes();
+  const { login } = useAuth();
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -20,21 +22,29 @@ const Login = () => {
         body: JSON.stringify({ username, password }),
       });
 
-      if (!res.ok) throw new Error('Неверные данные');
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || 'Неверные данные');
+      }
 
-      const { token } = await res.json();
-      localStorage.setItem('token', token);
-      
+      const { token, user } = await res.json();
+
+      if (!user) {
+        throw new Error('Данные пользователя не получены');
+      }
+
+      login(user, token);
+
       navigate('/');
       refreshMemes();
-    } catch {
-      setError('Неверный логин или пароль');
+    } catch (err) {
+      setError(err.message || 'Неверный логин или пароль');
     }
   };
 
   return (
     <div className="max-w-sm mx-auto mt-12 p-4 border rounded shadow">
-      <h2 className="text-xl font-bold mb-4">Вход администратора</h2>
+      <h2 className="text-xl font-bold mb-4">Вход в систему</h2>
       <form onSubmit={handleLogin}>
         <input
           className="border p-2 w-full mb-2 rounded"
