@@ -39,20 +39,24 @@ export const AuthProvider = ({ children }) => {
     return user?.role === 'admin';
   };
 
+  const isWriter = () => {
+    return user?.role === 'writer';
+  };
+
   const isUser = () => {
     return user?.role === 'user';
   };
 
   const canCreate = () => {
-    return isAdmin();
+    return isAdmin() || isWriter();
   };
 
   const canEdit = () => {
-    return isAdmin();
+    return isAdmin() || isWriter();
   };
 
   const canDelete = () => {
-    return isAdmin();
+    return isAdmin() || isWriter();
   };
 
   return (
@@ -63,6 +67,7 @@ export const AuthProvider = ({ children }) => {
         login,
         logout,
         isAdmin,
+        isWriter,
         isUser,
         canCreate,
         canEdit,

@@ -25,7 +25,7 @@ router.get('/', requireReadAccess, (req, res) => {
   let query = 'SELECT * FROM memes WHERE permissions = ?';
   let params = ['public'];
   
-  if (req.user.role === 'admin') {
+  if (req.user.role === 'admin' || req.user.role === 'writer') {
     query = 'SELECT * FROM memes';
     params = [];
   }
@@ -48,7 +48,7 @@ router.get('/:id', requireReadAccess, (req, res) => {
     if (!row) return res.status(404).json({ error: 'Meme not found' });
     
     // Проверяем права доступа
-    if (req.user.role !== 'admin' && row.permissions === 'admin') {
+    if ((req.user.role !== 'admin' && req.user.role !== 'writer') && row.permissions === 'admin') {
       return res.status(403).json({ error: 'Недостаточно прав для доступа к этому мему' });
     }
     
