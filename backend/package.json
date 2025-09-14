@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "node server.js",
     "add-user": "node scripts/add-user.js",
-    "migrate": "node migrations/002_add_users_and_permissions.js"
+    "migrate": "node migrations/003_change_meme_column_values.js"
   },
   "keywords": [],
   "author": "",

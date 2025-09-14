@@ -16,7 +16,7 @@ const MemeDetail = () => {
 
   const [tags, setTags] = useState(meme?.tags.join(', ') || '');
   const [description, setDescription] = useState(meme?.description || '');
-  const [permissions, setPermissions] = useState(meme?.permissions || 'admin');
+  const [permissions, setPermissions] = useState(meme?.permissions || 'private');
   const [showModal, setShowModal] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -24,7 +24,7 @@ const MemeDetail = () => {
     if (meme) {
       setTags(meme.tags.join(', '));
       setDescription(meme.description);
-      setPermissions(meme.permissions || 'admin');
+      setPermissions(meme.permissions || 'private');
     };
   }, [meme]);
 
@@ -105,7 +105,7 @@ const MemeDetail = () => {
                 <input
                   type="checkbox"
                   checked={permissions === 'public'}
-                  onChange={(e) => setPermissions(e.target.checked ? 'public' : 'admin')}
+                  onChange={(e) => setPermissions(e.target.checked ? 'public' : 'private')}
                   className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                   disabled={!canEdit()}
                 />

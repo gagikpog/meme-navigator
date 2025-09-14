@@ -22,9 +22,7 @@ db.serialize(() => {
       fileName TEXT NOT NULL,
       tags TEXT,
       description TEXT,
-      permissions TEXT DEFAULT 'public',
-      user_id INTEGER
-    )
+      permissions TEXT DEFAULT 'private')
   `);
 });
 

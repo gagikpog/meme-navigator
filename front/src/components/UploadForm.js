@@ -6,7 +6,7 @@ const UploadForm = ({ onUpload }) => {
   const [file, setFile] = useState(null);
   const [tags, setTags] = useState('');
   const [description, setDescription] = useState('');
-  const [permissions, setPermissions] = useState('admin');
+  const [permissions, setPermissions] = useState('private');
   const [status, setStatus] = useState('');
   const { refreshMemes } = useMemes();
 
@@ -40,7 +40,7 @@ const UploadForm = ({ onUpload }) => {
         setFile(null);
         setTags('');
         setDescription('');
-        setPermissions('admin');
+        setPermissions('private');
         await refreshMemes(); 
         onUpload?.(data); // обновить родителя при необходимости
       } else {
@@ -84,7 +84,7 @@ const UploadForm = ({ onUpload }) => {
           <input
             type="checkbox"
             checked={permissions === 'public'}
-            onChange={(e) => setPermissions(e.target.checked ? 'public' : 'admin')}
+            onChange={(e) => setPermissions(e.target.checked ? 'public' : 'private')}
             className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
           />
           {permissions === 'public' ? (

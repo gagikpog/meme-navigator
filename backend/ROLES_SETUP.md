@@ -11,7 +11,7 @@
 
 ### Права доступа к мемам:
 - **public** - доступны всем аутентифицированным пользователям
-- **admin** - доступны только администраторам
+- **private** - доступны только администраторам
 
 ## Установка и настройка
 
@@ -69,7 +69,7 @@ npm run dev
 {
   "tags": "[\"tag1\", \"tag2\"]",
   "description": "Описание мема",
-  "permissions": "public"  // "public", "admin"
+  "permissions": "public"  // "public", "private"
 }
 ```
 
@@ -102,5 +102,4 @@ JWT_SECRET=your_secret_key_here
 - fileName (TEXT NOT NULL)
 - tags (TEXT)
 - description (TEXT)
-- permissions (TEXT DEFAULT 'public')
-- user_id (INTEGER, FOREIGN KEY)
+- permissions (TEXT DEFAULT 'private')

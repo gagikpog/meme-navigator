@@ -61,7 +61,7 @@ const Home = () => {
                   🌐
                 </span>
               )}
-              {img.permissions === 'admin' && (
+              {img.permissions === 'private' && (
                 <span className="text-red-600 text-xs" title="Только для администраторов">
                   🔒
                 </span>

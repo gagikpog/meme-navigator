@@ -24,14 +24,14 @@ router.get('/', requireReadAccess, (req, res) => {
   // Админы видят все мемы
   let query = 'SELECT * FROM memes WHERE permissions = ?';
   let params = ['public'];
-  
+
   if (req.user.role === 'admin' || req.user.role === 'writer') {
     query = 'SELECT * FROM memes';
     params = [];
   }
-  
+
   query += ' ORDER BY id DESC';
-  
+
   db.all(query, params, (err, rows) => {
     if (err) return res.status(500).json({ error: err.message });
     res.json(rows.map(meme => ({
@@ -46,12 +46,12 @@ router.get('/:id', requireReadAccess, (req, res) => {
   db.get('SELECT * FROM memes WHERE id = ?', [req.params.id], (err, row) => {
     if (err) return res.status(500).json({ error: err.message });
     if (!row) return res.status(404).json({ error: 'Meme not found' });
-    
+
     // Проверяем права доступа
-    if ((req.user.role !== 'admin' && req.user.role !== 'writer') && row.permissions === 'admin') {
+    if ((req.user.role !== 'admin' && req.user.role !== 'writer') && row.permissions === 'private') {
       return res.status(403).json({ error: 'Недостаточно прав для доступа к этому мему' });
     }
-    
+
     row.tags = row.tags ? JSON.parse(row.tags) : [];
     res.json(row);
   });
@@ -66,25 +66,24 @@ router.post('/', requireWriteAccess, upload.single('image'), (req, res) => {
 
   const tagArray = tags ? JSON.parse(tags) : [];
 
-  // Админы могут создавать мемы с любыми правами (public, admin)
-  const allowedPermissions = ['public', 'admin'];
-    
+  // Админы могут создавать мемы с любыми правами (public, private)
+  const allowedPermissions = ['public', 'private'];
+
   if (!allowedPermissions.includes(permissions)) {
-    return res.status(400).json({ error: 'Недопустимое значение permissions. Разрешены: public, admin' });
+    return res.status(400).json({ error: 'Недопустимое значение permissions. Разрешены: public, private' });
   }
 
   db.run(
-    'INSERT INTO memes (fileName, tags, description, permissions, user_id) VALUES (?, ?, ?, ?, ?)',
+    'INSERT INTO memes (fileName, tags, description, permissions) VALUES (?, ?, ?, ?)',
     [fileName, JSON.stringify(tagArray), description || '', permissions, req.user.id],
     function (err) {
       if (err) return res.status(500).json({ error: err.message });
-      res.status(201).json({ 
-        id: this.lastID, 
-        fileName, 
-        tags: tagArray, 
+      res.status(201).json({
+        id: this.lastID,
+        fileName,
+        tags: tagArray,
         description,
         permissions,
-        user_id: req.user.id
       });
     }
   );
@@ -102,18 +101,18 @@ router.put('/:id', requireWriteAccess, (req, res) => {
 
     // Если пытаются изменить права доступа
     if (permissions) {
-      const allowedPermissions = ['public', 'admin'];
-        
+      const allowedPermissions = ['public', 'private'];
+
       if (!allowedPermissions.includes(permissions)) {
-        return res.status(400).json({ error: 'Недопустимое значение permissions. Разрешены: public, admin' });
+        return res.status(400).json({ error: 'Недопустимое значение permissions. Разрешены: public, private' });
       }
     }
 
-    const updateQuery = permissions 
+    const updateQuery = permissions
       ? 'UPDATE memes SET tags = ?, description = ?, permissions = ? WHERE id = ?'
       : 'UPDATE memes SET tags = ?, description = ? WHERE id = ?';
-    
-    const updateParams = permissions 
+
+    const updateParams = permissions
       ? [tagArray, description || "", permissions, req.params.id]
       : [tagArray, description || "", req.params.id];
 
