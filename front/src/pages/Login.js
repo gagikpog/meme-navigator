@@ -19,7 +19,7 @@ const Login = () => {
       const res = await fetch(`${API_URL}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ username, password, deviceId: localStorage.getItem('deviceId') }),
       });
 
       if (!res.ok) {

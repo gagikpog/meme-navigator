@@ -15,7 +15,7 @@ const auth = (req, res, next) => {
       throw new ERROR('JWT_SECRET is empty');
     }
     const decoded = jwt.verify(token, SECRET);
-    
+
     // Проверяем, не заблокирован ли пользователь
     db.get(
       'SELECT is_blocked FROM users WHERE id = ?',
@@ -24,17 +24,36 @@ const auth = (req, res, next) => {
         if (err) {
           return res.status(500).json({ message: 'Ошибка проверки статуса пользователя' });
         }
-        
+
         if (!user) {
           return res.status(404).json({ message: 'Пользователь не найден' });
         }
-        
+
         if (user.is_blocked) {
           return res.status(403).json({ message: 'Аккаунт заблокирован' });
         }
-        
-        req.user = decoded;
-        next();
+
+        // Проверяем активность сессии устройства, привязанной к токену
+        if (!decoded.deviceId) {
+          return res.status(401).json({ message: 'Сессия недействительна: отсутствует deviceId' });
+        }
+
+        db.get(
+          'SELECT id FROM user_sessions WHERE user_id = ? AND device_id = ? AND is_active = 1',
+          [decoded.id, decoded.deviceId],
+          (sessErr, session) => {
+            if (sessErr) {
+              return res.status(500).json({ message: 'Ошибка проверки сессии' });
+            }
+
+            if (!session) {
+              return res.status(401).json({ message: 'Сессия завершена. Выполните вход снова.' });
+            }
+
+            req.user = decoded;
+            next();
+          }
+        );
       }
     );
   } catch {

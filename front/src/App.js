@@ -4,8 +4,13 @@ import { MemeProvider } from './context/MemeContext';
 import { AuthProvider } from './context/AuthContext';
 import Header from './components/Header';
 import routes from "./router";
+import { useEffect } from 'react';
+import { ensureDeviceId } from './utils/deviceId';
 
 function App() {
+  useEffect(() => {
+    ensureDeviceId();
+  }, []);
   return (
     <div className="App">
       <AuthProvider>

@@ -3,11 +3,16 @@ import MemeDetail from './pages/MemeDetail';
 import MemeCreate from './pages/MemeCreate';
 import Login from './pages/Login';
 import ProtectedRoute from './components/ProtectedRoute';
+import Users from './pages/Users';
 
 const router = [
     {
         path: '/',
         element: <ProtectedRoute><Home /></ProtectedRoute>,
+    },
+    {
+        path: '/admin/users',
+        element: <ProtectedRoute requireAdmin={true}><Users /></ProtectedRoute>
     },
     {
         path: '/meme/new',

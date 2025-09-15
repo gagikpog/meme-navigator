@@ -4,8 +4,8 @@ import { useAuth } from '../context/AuthContext';
 
 const Header = () => {
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
-  
+  const { user, logout, isAdmin } = useAuth();
+
   const handleLogout = () => {
     logout();
     navigate('/login');
@@ -18,6 +18,9 @@ const Header = () => {
           Галерея Мемов
         </Link>
         <div className="flex items-center gap-4">
+        {user && isAdmin() && (
+          <Link to="/admin/users" className="text-sm text-blue-700 hover:underline">Пользователи</Link>
+        )}
         {
           user && (
             <button onClick={handleLogout} className="text-sm text-red-600 hover:underline">
