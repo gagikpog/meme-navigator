@@ -6,7 +6,7 @@ async function addUser() {
     const username = process.argv[2];
     const password = process.argv[3];
     const role = process.argv[4] || 'user';
-    
+
     if (!username || !password) {
       console.log('Использование: node add-user.js <username> <password> [role]');
       console.log('Пример: node add-user.js testuser password123 user');
@@ -19,7 +19,7 @@ async function addUser() {
         console.error('Ошибка проверки пользователя:', err.message);
         process.exit(1);
       }
-      
+
       if (row) {
         console.log('Пользователь уже существует');
         db.close();
@@ -28,7 +28,7 @@ async function addUser() {
 
       // Хешируем пароль
       const passwordHash = await bcrypt.hash(password, 10);
-      
+
       // Создаем пользователя
       db.run(
         'INSERT INTO users (username, password_hash, role) VALUES (?, ?, ?)',
@@ -38,13 +38,13 @@ async function addUser() {
             console.error('Ошибка создания пользователя:', err.message);
             process.exit(1);
           }
-          
+
           console.log(`Пользователь создан успешно:`);
           console.log(`Логин: ${username}`);
           console.log(`Пароль: ${password}`);
           console.log(`Роль: ${role}`);
           console.log(`ID: ${this.lastID}`);
-          
+
           db.close();
         }
       );

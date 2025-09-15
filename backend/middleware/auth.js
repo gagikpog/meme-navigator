@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const { ERROR } = require('sqlite3');
+const db = require('../db/database');
 require('dotenv').config();
 const SECRET = process.env.JWT_SECRET;
 
@@ -14,8 +15,28 @@ const auth = (req, res, next) => {
       throw new ERROR('JWT_SECRET is empty');
     }
     const decoded = jwt.verify(token, SECRET);
-    req.user = decoded;
-    next();
+    
+    // Проверяем, не заблокирован ли пользователь
+    db.get(
+      'SELECT is_blocked FROM users WHERE id = ?',
+      [decoded.id],
+      (err, user) => {
+        if (err) {
+          return res.status(500).json({ message: 'Ошибка проверки статуса пользователя' });
+        }
+        
+        if (!user) {
+          return res.status(404).json({ message: 'Пользователь не найден' });
+        }
+        
+        if (user.is_blocked) {
+          return res.status(403).json({ message: 'Аккаунт заблокирован' });
+        }
+        
+        req.user = decoded;
+        next();
+      }
+    );
   } catch {
     res.status(403).json({ message: 'Неверный токен' });
   }
