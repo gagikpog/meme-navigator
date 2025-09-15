@@ -5,22 +5,41 @@ import { useAuth } from '../context/AuthContext';
 const initialForm = { username: '', password: '', role: 'user' };
 
 const formatShort = (value) => {
-    if (!value) return '';
-    const d = new Date(value);
-    if (isNaN(d)) {
-      // fallback если пришла не ISO-строка
-      const s = String(value);
-      const base = s.slice(0, 10);
-      const [y, m, d2] = base.split('-');
-      if (y && m && d2) return `${d2}.${m}.${String(y).slice(-2)} ${s.slice(11,16)}`;
-      return s;
-    }
-    const dd = String(d.getDate()).padStart(2, '0');
-    const mm = String(d.getMonth() + 1).padStart(2, '0');
-    const yy = String(d.getFullYear()).slice(-2);
-    const hh = String(d.getHours()).padStart(2, '0');
-    const min = String(d.getMinutes()).padStart(2, '0');
-    return `${dd}.${mm}.${yy} ${hh}:${min}`;
+  if (!value) return '';
+  const d = new Date(value);
+  if (isNaN(d)) {
+    // fallback если пришла не ISO-строка
+    const s = String(value);
+    const base = s.slice(0, 10);
+    const [y, m, d2] = base.split('-');
+    if (y && m && d2) return `${d2}.${m}.${String(y).slice(-2)} ${s.slice(11,16)}`;
+    return s;
+  }
+  const dd = String(d.getDate()).padStart(2, '0');
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const yy = String(d.getFullYear()).slice(-2);
+  const hh = String(d.getHours()).padStart(2, '0');
+  const min = String(d.getMinutes()).padStart(2, '0');
+  return `${dd}.${mm}.${yy} ${hh}:${min}`;
+};
+
+const generateStrongPassword = () => {
+  const lowers = 'abcdefghijklmnopqrstuvwxyz';
+  const uppers = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  const digits = '0123456789';
+  const symbols = '!@#$%^&*()-_=+[]{};:,.?';
+  const all = lowers + uppers + digits + symbols;
+  const pick = (chars) => chars[Math.floor(Math.random() * chars.length)];
+  let pwd = [pick(lowers), pick(uppers), pick(digits), pick(symbols)];
+  while (pwd.length < 12) {
+      pwd.push(pick(all));
+  }
+  // shuffle
+  for (let i = pwd.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [pwd[i], pwd[j]] = [pwd[j], pwd[i]];
+  }
+  return pwd.join('');
 };
 
 const Users = () => {
@@ -33,6 +52,27 @@ const Users = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [form, setForm] = useState(initialForm);
+  const [showPassword, setShowPassword] = useState(false);
+
+
+  const onGeneratePassword = async () => {
+    const pwd = generateStrongPassword();
+    setForm((f) => ({ ...f, password: pwd }));
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(pwd);
+      }
+    } catch {}
+  };
+
+  const onCopyPassword = async () => {
+    try {
+      if (form.password && navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(form.password);
+      }
+    } catch {}
+  };
+
   const [editingId, setEditingId] = useState(null);
   const [sessionsModalUser, setSessionsModalUser] = useState(null);
   const [sessions, setSessions] = useState([]);
@@ -201,8 +241,54 @@ const Users = () => {
       <div className="border rounded p-3 mb-4">
         <h2 className="font-semibold mb-2">{editingId ? 'Изменить пользователя' : 'Добавить пользователя'}</h2>
         <div className="flex gap-2 flex-wrap">
-          <input className="border p-2 rounded" placeholder="Логин" value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} />
-          <input className="border p-2 rounded" type="password" placeholder="Пароль" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
+          <input className="border p-2 rounded" placeholder="Логин" autoComplete="off" value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} />
+          <div className="relative">
+            <input className="border p-2 rounded pr-28" type={showPassword ? 'text' : 'password'} placeholder="Пароль" autoComplete="new-password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
+            <button
+              type="button"
+              title={showPassword ? 'Скрыть пароль' : 'Показать пароль'}
+              aria-label={showPassword ? 'Скрыть пароль' : 'Показать пароль'}
+              onClick={() => setShowPassword((v) => !v)}
+              className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-gray-100"
+            >
+              {showPassword ? (
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M17.94 17.94A10.94 10.94 0 0 1 12 20C7 20 2.73 16.11 1 12c.46-1.06 1.12-2.05 1.94-2.94m3.1-2.9A10.94 10.94 0 0 1 12 4c5 0 9.27 3.89 11 8-."></path>
+                  <path d="M1 1l22 22"></path>
+                </svg>
+              ) : (
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+              )}
+            </button>
+            <button
+              type="button"
+              title="Сгенерировать пароль"
+              aria-label="Сгенерировать пароль"
+              onClick={onGeneratePassword}
+              className="absolute right-20 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-gray-100"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M5 8l6 6"/>
+                <path d="M4 14l6-6 2-3 3-2-2 3-3 2-6 6z"/>
+                <path d="M2 22l4-1-3-3-1 4z"/>
+              </svg>
+            </button>
+            <button
+              type="button"
+              title="Копировать пароль"
+              aria-label="Копировать пароль"
+              onClick={onCopyPassword}
+              className="absolute right-11 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-gray-100"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+              </svg>
+            </button>
+          </div>
           <select className="border p-2 rounded" value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })}>
             <option value="user">user</option>
             <option value="writer">writer</option>
