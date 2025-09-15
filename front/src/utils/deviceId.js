@@ -6,6 +6,7 @@ export function ensureDeviceId() {
             (+c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> +c / 4).toString(16)
         );
     }
+    localStorage.setItem('deviceId', deviceId);
     return deviceId;
   } catch {
     return null;
