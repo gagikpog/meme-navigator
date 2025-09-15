@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { IMAGE_URL } from '../config';
 import ImageWithAuth from '../components/ImageWithAuth';
 import compareText from '../utils/compareText';
+import { useMemo } from 'react';
 
 const fakeItem = Array.from({length: 10});
 
@@ -14,6 +15,21 @@ const Home = () => {
   const { canCreate } = useAuth();
 
   const filteredImages = memes.filter((img) => compareText(img.tags, search));
+
+  // Top 10 popular tags
+  const topTags = useMemo(() => {
+    const counter = new Map();
+    for (const m of memes) {
+      const tags = Array.isArray(m.tags) ? m.tags : (typeof m.tags === 'string' ? m.tags.split(',').map(t => t.trim()).filter(Boolean) : []);
+      for (const t of tags) {
+        counter.set(t, (counter.get(t) || 0) + 1);
+      }
+    }
+    return Array.from(counter.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 10)
+      .map(([t, c]) => ({ tag: t, count: c }));
+  }, [memes]);
 
   if (loading) return <div className="p-4">Загрузка...</div>;
 
@@ -29,12 +45,28 @@ const Home = () => {
             className="border p-2 w-full rounded"
           />
         </div>
-        
-        {canCreate() && (
-          <Link to="/meme/new" className="mb-4 inline-block text-blue-600 hover:underline">
-            + Добавить мем
-          </Link>
-        )}
+
+        <div className="flex items-center justify-between mb-2 gap-3 flex-wrap">
+          {canCreate() && (
+            <Link to="/meme/new" className="inline-block text-blue-600 hover:underline whitespace-nowrap">
+              + Добавить мем
+            </Link>
+          )}
+          {topTags.length > 0 && (
+            <div className="flex items-center gap-2 flex-wrap">
+              {topTags.map(({ tag, count }) => (
+                <button
+                  key={tag}
+                  title={`Добавить тег: ${tag} (повторений: ${count})`}
+                  className="text-xs px-2 py-1 rounded-full border hover:bg-gray-100"
+                  onClick={() => setSearch(tag)}
+                >
+                  #{tag} ({count})
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
 
         {/* TODO: Сюда добавить облоко тегов https://www.npmjs.com/package/react-wordcloud */}
       </div>
