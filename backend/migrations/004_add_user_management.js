@@ -39,13 +39,13 @@ db.serialize(() => {
 
   // Создаем индекс для быстрого поиска по device_id
   db.run(`
-    CREATE INDEX IF NOT EXISTS idx_user_sessions_device_id 
+    CREATE INDEX IF NOT EXISTS idx_user_sessions_device_id
     ON user_sessions (device_id)
   `);
 
   // Создаем индекс для поиска активных сессий пользователя
   db.run(`
-    CREATE INDEX IF NOT EXISTS idx_user_sessions_user_active 
+    CREATE INDEX IF NOT EXISTS idx_user_sessions_user_active
     ON user_sessions (user_id, is_active)
   `);
 });
@@ -54,7 +54,7 @@ db.close((err) => {
   if (err) {
     console.error('Error closing database:', err.message);
   } else {
-    console.log('Migration 003 completed successfully');
+    console.log('Migration 004 completed successfully');
   }
 });
 
