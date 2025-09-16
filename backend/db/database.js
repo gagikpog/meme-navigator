@@ -3,23 +3,6 @@ const path = require('path');
 
 const db = new sqlite3.Database(path.resolve(__dirname, 'memes.db'));
 
-// Improve concurrency and reliability for read-after-write patterns
-try {
-  // Wait up to 5s if the database is busy (e.g., another write in progress)
-  // Node-sqlite3 supports this via configure; fallback to PRAGMA if needed
-  if (typeof db.configure === 'function') {
-    db.configure('busyTimeout', 5000);
-  }
-  db.exec(`
-    PRAGMA journal_mode=WAL;
-    PRAGMA synchronous=NORMAL;
-    PRAGMA foreign_keys=ON;
-    PRAGMA busy_timeout=5000;
-  `);
-} catch (e) {
-  // Non-fatal; continue with defaults
-}
-
 db.serialize(() => {
   // Создаем таблицу пользователей
   db.run(`
