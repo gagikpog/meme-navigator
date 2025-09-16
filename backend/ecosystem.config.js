@@ -10,7 +10,14 @@ module.exports = {
       ignore_watch: [
         "node_modules",
         "logs",
-        ".git"
+        ".git",
+        // Ignore SQLite database and its journaling files to prevent restart loops
+        "db/*.db",
+        "db/*.db-wal",
+        "db/*.db-shm",
+        "db/*.sqlite",
+        "db/*.sqlite-wal",
+        "db/*.sqlite-shm"
       ],
       watch_options: {
         followSymlinks: false
