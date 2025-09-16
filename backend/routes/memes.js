@@ -34,10 +34,18 @@ router.get('/', requireReadAccess, (req, res) => {
 
   db.all(query, params, (err, rows) => {
     if (err) return res.status(500).json({ error: err.message });
-    res.json(rows.map(meme => ({
-      ...meme,
-      tags: meme.tags ? JSON.parse(meme.tags) : [],
-    })));
+    const safeRows = rows.map((meme) => {
+      let parsedTags = [];
+      if (meme.tags) {
+        try {
+          parsedTags = JSON.parse(meme.tags);
+        } catch {
+          parsedTags = [];
+        }
+      }
+      return { ...meme, tags: parsedTags };
+    });
+    res.json(safeRows);
   });
 });
 
@@ -52,7 +60,11 @@ router.get('/:id', requireReadAccess, (req, res) => {
       return res.status(403).json({ error: 'Недостаточно прав для доступа к этому мему' });
     }
 
-    row.tags = row.tags ? JSON.parse(row.tags) : [];
+    try {
+      row.tags = row.tags ? JSON.parse(row.tags) : [];
+    } catch {
+      row.tags = [];
+    }
     res.json(row);
   });
 });
@@ -64,7 +76,16 @@ router.post('/', requireWriteAccess, upload.single('image'), (req, res) => {
 
   if (!fileName) return res.status(400).json({ error: 'No image uploaded' });
 
-  const tagArray = tags ? JSON.parse(tags) : [];
+  let tagArray = [];
+  if (typeof tags === 'string') {
+    try {
+      tagArray = JSON.parse(tags);
+    } catch {
+      tagArray = [];
+    }
+  } else if (Array.isArray(tags)) {
+    tagArray = tags;
+  }
 
   // Админы могут создавать мемы с любыми правами (public, private)
   const allowedPermissions = ['public', 'private'];
@@ -91,8 +112,18 @@ router.post('/', requireWriteAccess, upload.single('image'), (req, res) => {
 
 // UPDATE meme - только для администраторов
 router.put('/:id', requireWriteAccess, (req, res) => {
-  const { tags, description, permissions } = req.body;
-  const tagArray = tags ? JSON.stringify(tags) : '[]';
+  const { tags: updateTags, description, permissions } = req.body;
+  let tagArrayStr = '[]';
+  if (typeof updateTags === 'string') {
+    try {
+      const parsed = JSON.parse(updateTags);
+      tagArrayStr = JSON.stringify(Array.isArray(parsed) ? parsed : []);
+    } catch {
+      tagArrayStr = '[]';
+    }
+  } else if (Array.isArray(updateTags)) {
+    tagArrayStr = JSON.stringify(updateTags);
+  }
 
   // Сначала проверяем, существует ли мем
   db.get('SELECT * FROM memes WHERE id = ?', [req.params.id], (err, meme) => {
@@ -113,8 +144,8 @@ router.put('/:id', requireWriteAccess, (req, res) => {
       : 'UPDATE memes SET tags = ?, description = ? WHERE id = ?';
 
     const updateParams = permissions
-      ? [tagArray, description || "", permissions, req.params.id]
-      : [tagArray, description || "", req.params.id];
+      ? [tagArrayStr, description || "", permissions, req.params.id]
+      : [tagArrayStr, description || "", req.params.id];
 
     db.run(updateQuery, updateParams, function (err) {
       if (err) return res.status(500).json({ error: err.message });
