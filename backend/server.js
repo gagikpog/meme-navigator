@@ -52,11 +52,6 @@ app.use('/meme/images', auth, express.static(path.join(__dirname, 'public/images
 app.use('/meme/api/memes', auth, memeRoutes);
 app.use('/meme/api/users', auth, requireAdminAccess, userRoutes);
 
-// Health check (no auth) to verify upstream availability
-app.get('/meme/health', (req, res) => {
-  res.status(200).json({ status: 'ok' });
-});
-
 // Обработка 404 - маршрут не найден
 app.use((req, res, next) => {
   res.status(404).json({ message: `Маршрут "${req.path}" не найден` });
