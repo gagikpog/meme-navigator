@@ -6,6 +6,10 @@ const SECRET = process.env.JWT_SECRET;
 
 // Middleware для проверки аутентификации
 const auth = (req, res, next) => {
+  // Skip auth for CORS preflight
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(204);
+  }
   const token = req.headers.authorization?.split(' ')[1];
   if (!token) return res.status(401).json({ message: 'Нет токена' });
 
