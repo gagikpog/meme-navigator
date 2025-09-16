@@ -27,7 +27,7 @@ const Home = () => {
     }
     return Array.from(counter.entries())
       .sort((a, b) => b[1] - a[1])
-      .slice(0, 15)
+      .slice(0, 10)
       .map(([t, c]) => ({ tag: t, count: c }));
   }, [memes]);
 

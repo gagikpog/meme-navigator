@@ -74,7 +74,7 @@ router.post('/', requireWriteAccess, upload.single('image'), (req, res) => {
   }
 
   db.run(
-    'INSERT INTO memes (fileName, tags, description, permissions) VALUES (?, ?, ?, ?)',
+    'INSERT INTO memes (fileName, tags, description, permissions, user_id) VALUES (?, ?, ?, ?, ?)',
     [fileName, JSON.stringify(tagArray), description || '', permissions, req.user.id],
     function (err) {
       if (err) return res.status(500).json({ error: err.message });
