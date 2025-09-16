@@ -32,8 +32,13 @@ app.use(
   })
 );
 
-// Explicit preflight handler before auth
-app.options('*', cors());
+// Explicit preflight short-circuit before auth to avoid wildcard route parsing issues
+app.use((req, res, next) => {
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(204);
+  }
+  next();
+});
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
