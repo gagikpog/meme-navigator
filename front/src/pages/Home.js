@@ -1,4 +1,5 @@
 import useSearch from '../hooks/useSearch';
+import usePermFilter from '../hooks/usePermFilter';
 import { Link } from 'react-router-dom';
 import { useMemes } from '../context/MemeContext';
 import { useAuth } from '../context/AuthContext';
@@ -7,14 +8,22 @@ import ImageWithAuth from '../components/ImageWithAuth';
 import compareText from '../utils/compareText';
 import { useMemo } from 'react';
 
-const fakeItem = Array.from({length: 10});
-
 const Home = () => {
   const { memes, loading } = useMemes();
   const [search, setSearch] = useSearch();
   const { canCreate } = useAuth();
+  const [permFilter, setPermFilter] = usePermFilter();
 
-  const filteredImages = memes.filter((img) => compareText(img.tags, search));
+  const canCreateFlag = canCreate();
+
+  const filteredImages = useMemo(() => {
+    const permissionFiltered = (() => {
+      if (!canCreateFlag) return memes;
+      if (permFilter === 'all') return memes;
+      return memes.filter((m) => m.permissions === permFilter);
+    })();
+    return permissionFiltered.filter((img) => compareText(img.tags, search));
+  }, [memes, permFilter, canCreateFlag, search]);
 
   // Top 10 popular tags
   const topTags = useMemo(() => {
@@ -35,82 +44,141 @@ const Home = () => {
 
   return (
     <div>
-      <div className='sticky top-0 bg-white p-4'>
-        <div className="flex justify-between items-center mb-4">
-          <input
-            type="text"
-            placeholder="Поиск по тегам..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="border p-2 w-full rounded"
-          />
+      <div className='sticky  z-20 top-0 bg-white/80 backdrop-blur border-b p-3'>
+        <div className="mb-2">
+          <div className="relative" >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+              aria-hidden="true"
+            >
+              <circle cx="11" cy="11" r="7" />
+              <path strokeLinecap="round" d="M20 20l-3.5-3.5" />
+            </svg>
+            <input
+              type="text"
+              placeholder="Поиск по тегам..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="border border-gray-300 bg-white/90 rounded-full w-full pr-9 pl-9 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+            />
+            {search && (
+              <button
+                type="button"
+                onClick={() => setSearch('')}
+                className="absolute right-2 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center rounded-full text-gray-500 hover:text-gray-700 hover:bg-gray-100 focus:outline-none"
+                title="Очистить поиск"
+                aria-label="Очистить поиск"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  className="w-3.5 h-3.5"
+                  aria-hidden="true"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 6l12 12M18 6L6 18" />
+                </svg>
+              </button>
+            )}
+          </div>
         </div>
 
-        <div className="flex items-center justify-between mb-2 gap-3 flex-wrap">
+        <div className="flex items-center justify-between mb-1 gap-3">
           {canCreate() && (
-            <Link to="/meme/new" className="inline-block text-blue-600 hover:underline whitespace-nowrap">
+            <Link to="/meme/new" className="inline-block text-white bg-blue-600 hover:bg-blue-700 transition-colors px-3 py-1.5 rounded whitespace-nowrap shadow-sm">
               + Добавить мем
             </Link>
           )}
           {topTags.length > 0 && (
-            <div className="flex items-center gap-2 flex-wrap">
+            <div className="-mx-3 px-3 overflow-x-auto whitespace-nowrap no-scrollbar">
               {topTags.map(({ tag, count }) => (
                 <button
                   key={tag}
                   title={`Добавить тег: ${tag} (повторений: ${count})`}
-                  className="text-xs px-2 py-1 rounded-full border hover:bg-gray-100"
+                  className="inline-flex items-center gap-1 text-[11px] px-2 py-1 rounded-full border border-gray-300 bg-white hover:bg-gray-50 shadow-sm mr-2 mb-1"
                   onClick={() => setSearch(tag)}
                 >
-                  #{tag} ({count})
+                  #{tag}
+                  <span className="text-gray-400">{count}</span>
                 </button>
               ))}
             </div>
           )}
         </div>
 
-        {/* TODO: Сюда добавить облоко тегов https://www.npmjs.com/package/react-wordcloud */}
+        {canCreate() && (
+          <div className="mb-2 flex items-center gap-2">
+            <span className="text-xs text-gray-500">Статус:</span>
+            <div className="inline-flex rounded-full border bg-white p-0.5 text-xs shadow-sm">
+              <button
+                type="button"
+                onClick={() => setPermFilter('all')}
+                className={`px-3 py-1 rounded-full ${permFilter === 'all' ? 'bg-gray-900 text-white' : 'text-gray-700 hover:bg-gray-100'}`}
+              >Все</button>
+              <button
+                type="button"
+                onClick={() => setPermFilter('public')}
+                className={`px-3 py-1 rounded-full ${permFilter === 'public' ? 'bg-green-600 text-white' : 'text-gray-700 hover:bg-gray-100'}`}
+              >Публичные</button>
+              <button
+                type="button"
+                onClick={() => setPermFilter('private')}
+                className={`px-3 py-1 rounded-full ${permFilter === 'private' ? 'bg-red-600 text-white' : 'text-gray-700 hover:bg-gray-100'}`}
+              >Приватные</button>
+            </div>
+          </div>
+        )}
       </div>
 
-      <div className="flex flex-wrap gap-4 justify-start p-4">
+      <div className="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
         {filteredImages.map((img) => (
           <Link
             key={img.fileName}
             to={`/meme/${img.fileName}`}
-            className="border p-2 rounded shadow-sm flex-grow"
-            style={{ flexBasis: '400px', maxWidth: '100%' }}
+            className="group relative border rounded-xl overflow-hidden bg-white shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-0.5 hover:border-gray-300"
             title={img.description}
           >
-            <div className="w-full h-[300px] overflow-hidden rounded">
+            <div className="relative w-full aspect-[4/3] overflow-hidden bg-gray-100">
               <ImageWithAuth
                 src={`${IMAGE_URL}/${img.fileName}`}
                 alt={img.fileName}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
               />
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
             </div>
-            <div className="flex items-center gap-2 mt-1">
-              {img.permissions === 'public' && (
-                <span className="text-green-600 text-xs" title="Публичный мем">
-                  🌐
-                </span>
-              )}
-              {img.permissions === 'private' && (
-                <span className="text-red-600 text-xs" title="Только для администраторов">
-                  🔒
-                </span>
-              )}
-              <p className="text-sm text-gray-500">
-                Теги: {img.tags?.join(", ") || "Без тегов"}
+            <div className="p-3 space-y-1">
+              <div className="flex items-center justify-between gap-2">
+                {img.description ? (
+                  <p className="text-sm font-medium text-gray-800 truncate">
+                    {img.description}
+                  </p>
+                ) : (
+                  <div className="h-5" />
+                )}
+                {img.permissions === 'public' && (
+                  <span className="shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-green-50 text-green-600 border border-green-200" title="Публичный мем">
+                    🌐 public
+                  </span>
+                )}
+                {img.permissions === 'private' && (
+                  <span className="shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-red-50 text-red-600 border border-red-200" title="Только для администраторов">
+                    🔒 private
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-gray-500 truncate">
+                {Array.isArray(img.tags) && img.tags.length > 0 ? `#${img.tags.slice(0, 3).join(' #')}${img.tags.length > 3 ? ' …' : ''}` : 'Без тегов'}
               </p>
             </div>
           </Link>
         ))}
-        {fakeItem.map(() => (
-            <div
-              className=" flex-grow"
-              style={{ flexBasis: '400px', maxWidth: '100%' }}
-            ></div>
-          )
-        )}
       </div>
     </div>
   );

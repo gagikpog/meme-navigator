@@ -12,22 +12,20 @@ const Header = () => {
   };
 
   return (
-    <header className="bg-gray-100 p-4 mb-6 shadow-sm sticky top-0">
-      <div className="max-w-5xl mx-auto flex justify-between items-center">
-        <Link to="/" className="text-2xl font-bold text-blue-600 hover:underline">
+    <header className="sticky top-0 backdrop-blur bg-white/70 border-b">
+      <div className="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center">
+        <Link to="/" className="text-xl font-bold text-gray-900 hover:text-blue-600 transition-colors">
           Галерея Мемов
         </Link>
         <div className="flex items-center gap-4">
-        {user && isAdmin() && (
-          <Link to="/admin/users" className="text-sm text-blue-700 hover:underline">Пользователи</Link>
-        )}
-        {
-          user && (
-            <button onClick={handleLogout} className="text-sm text-red-600 hover:underline">
+          {user && isAdmin() && (
+            <Link to="/admin/users" className="text-sm text-gray-700 hover:text-blue-600 transition-colors">Пользователи</Link>
+          )}
+          {user && (
+            <button onClick={handleLogout} className="text-sm text-red-600 hover:text-red-700 transition-colors">
               Выйти
             </button>
-          )
-        }
+          )}
         </div>
       </div>
     </header>

@@ -15,8 +15,17 @@ export default function useSearch() {
 
     const changeValue = useCallback((value) => {
         setSearch(value);
-        setSearchValueDebounce(setSearchParams, { search: value });
-    }, [setSearchParams]);
+        // Preserve existing query params and update only `search`
+        setSearchValueDebounce((val) => {
+            const params = new URLSearchParams(searchParams);
+            if (val) {
+                params.set('search', val);
+            } else {
+                params.delete('search');
+            }
+            setSearchParams(params);
+        }, value);
+    }, [searchParams, setSearchParams]);
 
     const currentSearchValue = searchParams.get('search') || '';
     useEffect(() => setSearch(currentSearchValue), [currentSearchValue]);

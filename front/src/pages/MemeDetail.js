@@ -20,6 +20,11 @@ const MemeDetail = () => {
   const [showModal, setShowModal] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
+  // Scroll to top when opening a meme or navigating between memes
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+  }, [fileName]);
+
   useEffect(() => {
     if (meme) {
       setTags(meme.tags.join(', '));
@@ -32,7 +37,7 @@ const MemeDetail = () => {
 
   const handleSave = async () => {
     if (!canEdit()) return;
-    
+
     setIsSaving(true);
     const tagArray = tags.split(',').map((t) => t.trim()).filter(Boolean);
     const res = await authFetch(`/api/memes/${meme.id}`, {
@@ -46,7 +51,7 @@ const MemeDetail = () => {
 
   const handleDelete = async () => {
     if (!canDelete()) return;
-    
+
     const confirmed = window.confirm('Удалить мем?');
     if (!confirmed) return;
 
@@ -98,7 +103,7 @@ const MemeDetail = () => {
               disabled={!canEdit()}
             />
           </div>
-          
+
           {canEdit() && (
             <div className="mt-4 mb-4">
               <label className="flex items-center gap-2 text-sm font-medium text-gray-700 cursor-pointer">
@@ -121,7 +126,7 @@ const MemeDetail = () => {
               </p>
             </div>
           )}
-          
+
           <div className="flex gap-4">
             {canEdit() && (
               <button

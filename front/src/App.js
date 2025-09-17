@@ -12,7 +12,7 @@ function App() {
     ensureDeviceId();
   }, []);
   return (
-    <div className="App">
+    <div className="App min-h-screen bg-gray-50 text-gray-800">
       <AuthProvider>
         <MemeProvider>
             <Router>
