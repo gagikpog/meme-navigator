@@ -11,6 +11,7 @@ module.exports = {
         "node_modules",
         "logs",
         ".git",
+        "public/*",
         // Ignore SQLite database and its journaling files to prevent restart loops
         "db/*.db",
         "db/*.db-wal",
