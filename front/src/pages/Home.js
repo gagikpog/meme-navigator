@@ -162,15 +162,19 @@ const Home = () => {
                 ) : (
                   <div className="h-5" />
                 )}
-                {img.permissions === 'public' && (
-                  <span className="shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-green-50 text-green-600 border border-green-200" title="Публичный мем">
-                    🌐 public
-                  </span>
-                )}
-                {img.permissions === 'private' && (
-                  <span className="shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-red-50 text-red-600 border border-red-200" title="Только для администраторов">
-                    🔒 private
-                  </span>
+                {canCreateFlag && (
+                  <>
+                    {img.permissions === 'public' && (
+                      <span className="shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-green-50 text-green-600 border border-green-200" title="Публичный мем">
+                        🌐 public
+                      </span>
+                    )}
+                    {img.permissions === 'private' && (
+                      <span className="shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-red-50 text-red-600 border border-red-200" title="Только для администраторов">
+                        🔒 private
+                      </span>
+                    )}
+                  </>
                 )}
               </div>
               <p className="text-xs text-gray-500 truncate">
