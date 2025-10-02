@@ -70,7 +70,7 @@ const MemeDetail = () => {
         {/* Картинка на всю ширину и высоту экрана */}
         <div className="w-full h-[calc(100vh-150px)] overflow-hidden rounded mb-6">
           <div
-            className="w-full h-[calc(100vh-150px)] flex items-center justify-center overflow-hidden bg-black rounded mb-6 cursor-pointer"
+            className="w-full h-[calc(100vh-150px)] flex items-center justify-center overflow-hidden bg-gray-50 rounded mb-6 cursor-pointer"
             onClick={() => setShowModal(true)}
           >
 
