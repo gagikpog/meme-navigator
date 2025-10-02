@@ -1,4 +1,6 @@
 node_modules
 public/images/
 *.db
+*.db-shm
+*.db-wal
 .env
