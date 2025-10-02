@@ -3,6 +3,7 @@ const cors = require('cors');
 const path = require('path');
 const { auth, requireAdminAccess } = require('./middleware/auth');
 const memeRoutes = require('./routes/memes');
+const rssRoutes = require('./routes/rss');
 const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/users');
 require('dotenv').config();
@@ -47,6 +48,7 @@ app.set('trust proxy', true);
 
 app.use('/meme/api/auth', authRoutes);
 app.use('/meme/images', auth, express.static(path.join(__dirname, 'public/images')));
+app.use('/meme', rssRoutes); // public RSS at /meme/rss.xml
 
 // Routes
 app.use('/meme/api/memes', auth, memeRoutes);
