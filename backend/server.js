@@ -1,10 +1,11 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
-const { auth, requireAdminAccess } = require('./middleware/auth');
+const { auth, requireAdminAccess, authQueryFallback } = require('./middleware/auth');
 const memeRoutes = require('./routes/memes');
 const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/users');
+const { addClient, removeClient } = require('./notifications/hub');
 require('dotenv').config();
 
 const app = express();
@@ -51,6 +52,34 @@ app.use('/meme/images', auth, express.static(path.join(__dirname, 'public/images
 // Routes
 app.use('/meme/api/memes', auth, memeRoutes);
 app.use('/meme/api/users', auth, requireAdminAccess, userRoutes);
+
+// SSE notifications endpoint
+app.get('/meme/api/notifications', authQueryFallback, (req, res) => {
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.flushHeaders?.();
+
+  // initial comment to establish stream
+  res.write(': connected\n\n');
+
+  const client = { res, user: req.user };
+  addClient(client);
+
+  // heartbeat to keep the connection alive through proxies
+  const heartbeat = setInterval(() => {
+    try {
+      res.write(': ping\n\n');
+    } catch {
+      // ignore
+    }
+  }, 25000);
+
+  req.on('close', () => {
+    removeClient(client);
+    clearInterval(heartbeat);
+  });
+});
 
 // Обработка 404 - маршрут не найден
 app.use((req, res, next) => {

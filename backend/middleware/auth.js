@@ -92,4 +92,12 @@ const requireAdminAccess = (req, res, next) => {
   }
 };
 
-module.exports = { auth, requireReadAccess, requireWriteAccess, requireAdminAccess };
+// Allow auth via query param token for SSE where headers are not supported
+const authQueryFallback = (req, res, next) => {
+  if (!req.headers.authorization && req.query && req.query.token) {
+    req.headers.authorization = `Bearer ${req.query.token}`;
+  }
+  return auth(req, res, next);
+};
+
+module.exports = { auth, requireReadAccess, requireWriteAccess, requireAdminAccess, authQueryFallback };

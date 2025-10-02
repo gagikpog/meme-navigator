@@ -5,6 +5,7 @@ const db = require('../db/database');
 const { requireReadAccess, requireWriteAccess } = require('../middleware/auth');
 
 const router = express.Router();
+const { broadcast } = require('../notifications/hub');
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, 'public/images'),
@@ -99,13 +100,20 @@ router.post('/', requireWriteAccess, upload.single('image'), (req, res) => {
     [fileName, JSON.stringify(tagArray), description || '', permissions],
     function (err) {
       if (err) return res.status(500).json({ error: err.message });
-      res.status(201).json({
+      const created = {
         id: this.lastID,
         fileName,
         tags: tagArray,
         description,
         permissions,
-      });
+      };
+
+      // Notify via SSE about the new meme
+      try {
+        broadcast({ type: 'meme_created', data: created });
+      } catch {}
+
+      res.status(201).json(created);
     }
   );
 });
