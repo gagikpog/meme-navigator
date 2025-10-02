@@ -71,23 +71,34 @@ router.get('/rss.xml', (req, res) => {
 
 function generateRss(req, res) {
   // Only public memes in RSS
-  const sql = 'SELECT * FROM memes WHERE permissions = ? ORDER BY id DESC LIMIT 100';
+  const sql = 'SELECT * FROM memes WHERE permissions = ? ORDER BY id DESC LIMIT 10';
   db.all(sql, ['public'], (err, rows) => {
     if (err) {
       return res.status(500).send('Error generating RSS');
     }
 
-    const baseUrl = `${req.protocol}://${req.get('host')}`;
-    const siteLink = `${baseUrl}/`;
+    const FRONT_BASE_URL = process.env.FRONT_BASE_URL || 'https://meme.gagikpog.ru';
+    const API_BASE_URL = process.env.API_BASE_URL || 'https://gagikpog-api.ru/meme';
+    const siteLink = `${FRONT_BASE_URL}/`;
 
     const itemsXml = (rows || []).map((row) => {
       const fileName = row.fileName;
-      const title = row.description && row.description.trim().length > 0
-        ? row.description
-        : fileName;
-      const link = `${baseUrl}/meme/${encodeURIComponent(fileName)}`;
+      let title = '';
+      if (row.description && String(row.description).trim().length > 0) {
+        title = String(row.description).trim();
+      } else {
+        let tagsText = '';
+        try {
+          const parsed = row.tags ? JSON.parse(row.tags) : [];
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            tagsText = parsed.map((t) => `#${String(t).trim()}`).join(' ');
+          }
+        } catch {}
+        title = tagsText && tagsText.trim().length > 0 ? tagsText : fileName;
+      }
+      const link = `${FRONT_BASE_URL}/meme/${encodeURIComponent(fileName)}`;
       const guid = link;
-      const enclosureUrl = `${baseUrl}/meme/images/${encodeURIComponent(fileName)}`;
+      const enclosureUrl = `${API_BASE_URL}/images/${encodeURIComponent(fileName)}`;
       const mime = guessMimeFromFilename(fileName);
 
       // Try to parse timestamp from file name prefix (Date.now() used at upload)

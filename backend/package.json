@@ -4,7 +4,7 @@
   "description": "",
   "main": "server.js",
   "scripts": {
-    "dev": "node server.js",
+    "dev": "nodemon server.js",
     "add-user": "node scripts/add-user.js",
     "migrate": "node migrations/003_change_meme_column_values.js"
   },
@@ -19,5 +19,25 @@
     "jsonwebtoken": "^9.0.2",
     "multer": "^2.0.2",
     "sqlite3": "^5.1.7"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0"
+  },
+  "nodemonConfig": {
+    "watch": [
+      "server.js",
+      "routes",
+      "middleware",
+      "db",
+      "rss.js"
+    ],
+    "ext": "js,json",
+    "ignore": [
+      "public/images",
+      "node_modules",
+      "**/*.db",
+      "**/*.db-wal",
+      "**/*.db-shm"
+    ]
   }
 }
