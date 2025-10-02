@@ -59,15 +59,9 @@ const ImageModal = ({ src, onClose }) => {
         ✕
       </button>
 
-      {/* Обёртка, которая НЕ вызывает onClose */}
+      {/* Обёртка: позволяет кликнуть по фону для закрытия */}
       <div
-        className="w-full h-full overflow-hidden relative cursor-grab active:cursor-grabbing"
-        onClick={(e) => e.stopPropagation()} // ⛔ блокируем клик по контейнеру
-        onWheel={handleWheel}
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseUp}
+        className="w-full h-full overflow-hidden relative"
       >
         <div
           className="absolute"
@@ -78,6 +72,12 @@ const ImageModal = ({ src, onClose }) => {
             transformOrigin: 'center center',
             transition: isDragging ? 'none' : 'transform 0.1s ease-out',
           }}
+          onClick={(e) => e.stopPropagation()}
+          onWheel={handleWheel}
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseUp}
         >
           <ImageWithAuth
             src={src}
