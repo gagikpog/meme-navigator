@@ -94,15 +94,27 @@ const MemeDetail = () => {
             className="border rounded w-full p-2 mb-4"
             disabled={!canEdit()}
           />
-          <div className="mt-4 mb-4">
-            <label className="block">Описание:</label>
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="w-full p-2 rounded bg-gray-100"
-              disabled={!canEdit()}
-            />
-          </div>
+          {canEdit() ? (
+            <div className="mt-4 mb-4">
+              <label className="block">Описание:</label>
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                className="w-full p-2 rounded bg-gray-100"
+                rows="10"
+                disabled={!canEdit()}
+              />
+            </div>
+          ) : (
+            description && (
+              <div className="mt-4 mb-4">
+                <label className="block">Описание:</label>
+                <div className="w-full p-2 rounded bg-gray-100">
+                  {description}
+                </div>
+              </div>
+            )
+          )}
 
           {canEdit() && (
             <div className="mt-4 mb-4">
