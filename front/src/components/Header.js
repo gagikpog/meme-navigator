@@ -36,7 +36,14 @@ const Header = () => {
             </button>
           )}
           {user && isAdmin() && (
-            <Link to="/admin/users" className="text-sm text-gray-700 hover:text-blue-600 transition-colors">Пользователи</Link>
+            <Link
+              to="/admin/users"
+              className="inline-flex items-center gap-1 text-[11px] px-2 py-1 rounded border border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
+              title="Пользователи"
+            >
+              <span className="hidden sm:inline">Пользователи</span>
+              <span className="sm:hidden">👥</span>
+            </Link>
           )}
           {user && (
             <button onClick={handleLogout} className="text-sm text-red-600 hover:text-red-700 transition-colors">

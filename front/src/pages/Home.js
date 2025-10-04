@@ -91,11 +91,6 @@ const Home = () => {
         </div>
 
         <div className="flex items-center justify-between mb-1 gap-3">
-          {canCreate() && (
-            <Link to="/meme/new" className="inline-block text-white bg-blue-600 hover:bg-blue-700 transition-colors px-3 py-1.5 rounded whitespace-nowrap shadow-sm">
-              + Добавить мем
-            </Link>
-          )}
           {topTags.length > 0 && (
             <div className="-mx-3 px-3 overflow-x-auto whitespace-nowrap no-scrollbar">
               {topTags.map(({ tag, count }) => (
@@ -184,6 +179,19 @@ const Home = () => {
           </Link>
         ))}
       </div>
+
+      {canCreate() && (
+        <Link
+          to="/meme/new"
+          className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-blue-600 text-white shadow-lg hover:bg-blue-700 active:bg-blue-800 flex items-center justify-center"
+          title="Добавить мем"
+          aria-label="Добавить мем"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-7 h-7 sm:w-8 sm:h-8">
+            <path strokeLinecap="round" d="M12 5v14M5 12h14" />
+          </svg>
+        </Link>
+      )}
     </div>
   );
 };
