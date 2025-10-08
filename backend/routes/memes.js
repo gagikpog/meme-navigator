@@ -3,6 +3,7 @@ const multer = require('multer');
 const path = require('path');
 const db = require('../db/database');
 const { requireReadAccess, requireWriteAccess } = require('../middleware/auth');
+const sendNotifications = require('../utils/sendNotifications');
 
 const router = express.Router();
 
@@ -99,6 +100,14 @@ router.post('/', requireWriteAccess, upload.single('image'), (req, res) => {
     [fileName, JSON.stringify(tagArray), description || '', permissions],
     function (err) {
       if (err) return res.status(500).json({ error: err.message });
+
+      sendNotifications({
+        title: 'Новое изображение!',
+        body: (tagArray || []).map((tag) => `#${tag}`).join(' ') || description || 'без тегов',
+        icon: '/icons/icon_x192.png',
+        url: `/meme/${fileName}`
+      });
+
       res.status(201).json({
         id: this.lastID,
         fileName,
@@ -149,6 +158,23 @@ router.put('/:id', requireWriteAccess, (req, res) => {
 
     db.run(updateQuery, updateParams, function (err) {
       if (err) return res.status(500).json({ error: err.message });
+
+      if (permissions !== meme.permissions && permissions === 'public') {
+
+        let tagArray = [];
+
+        try {
+          tagArray = updateTags.length ? updateTags : JSON.parse(meme.tags)
+        } catch {}
+
+        sendNotifications({
+          title: 'Новое изображение!',
+          body: (tagArray || []).map((tag) => `#${tag}`).join(' ') || description || 'без тегов',
+          icon: '/icons/icon_x192.png',
+          url: `/meme/${meme.fileName}`
+        });
+      }
+
       res.json({ updated: this.changes });
     });
   });

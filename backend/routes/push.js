@@ -3,6 +3,7 @@ const bcrypt = require('bcryptjs');
 const db = require('../db/database');
 const router = express.Router();
 const webpush = require('web-push');
+const sendNotifications = require('../utils/sendNotifications');
 
 // === POST /subscribe ===
 // Добавляем или обновляем подписку в базе
@@ -33,48 +34,18 @@ router.post('/subscribe', (req, res) => {
 // === POST /notify ===
 // Отправляем уведомления всем пользователям
 router.post('/notify', (req, res) => {
-    const payload = JSON.stringify({
-      title: 'Новое изображение!',
-      body: 'Администратор добавил новое изображение.',
-      icon: '/icon.png',
-      url: '/images'
-    });
+    const payload = {
+        title: 'Новое изображение!',
+        body: 'Админ добавил картинку',
+        icon: '/icons/icon_x192.png',
+        url: '/'
+    };
 
-    db.all('SELECT * FROM subscriptions', async (err, rows) => {
-      if (err) {
-        console.error('Ошибка чтения подписок:', err);
-        return res.status(500).json({ error: 'Ошибка базы данных' });
-      }
-
-      console.log(`notify to ${rows.length} subscriptions`, rows);
-
-      const results = await Promise.all(
-        rows.map(async sub => {
-          const subscription = {
-            endpoint: sub.endpoint,
-            keys: {
-              p256dh: sub.keys_p256dh,
-              auth: sub.keys_auth
-            }
-          };
-
-          try {
-            await webpush.sendNotification(subscription, payload);
-            return { endpoint: sub.endpoint, status: 'ok' };
-          } catch (err) {
-            console.error('Ошибка Push:', err.statusCode, err, sub.endpoint);
-
-            // Если подписка больше неактуальна — удаляем
-            if (err.statusCode === 410 || err.statusCode === 404) {
-              db.run('DELETE FROM subscriptions WHERE endpoint = ?', [sub.endpoint]);
-              console.log('🗑 Удалена устаревшая подписка:', sub.endpoint);
-            }
-            return { endpoint: sub.endpoint, status: 'failed' };
-          }
-        })
-      );
-
-      res.json({ message: 'Уведомления отправлены', results });
+    sendNotifications(payload).then((data) => {
+        res.json(data);
+    }).catch((error) => {
+        res.status(500).json({ error: error.message });
     });
 });
+
 module.exports = router;
