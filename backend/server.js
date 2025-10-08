@@ -1,21 +1,25 @@
 const express = require('express');
 const cors = require('cors');
+const webpush = require('web-push');
 const path = require('path');
 const { auth, requireAdminAccess } = require('./middleware/auth');
 const memeRoutes = require('./routes/memes');
+const pushRoutes = require('./routes/push');
 const rssRoutes = require('./routes/rss');
 const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/users');
 require('dotenv').config();
 
 const app = express();
-const PORT = process.env.PORT || 8003;
+const PORT = process.env.PORT || 4000;
 const ALLOWED_ORIGINS = [
   'https://meme.gagikpog.ru',
   'https://gagikpog-api.ru',
   'http://localhost:3000',
-  'http://localhost:8003',
+  'http://localhost:4000',
 ];
+
+webpush.setVapidDetails('mailto:gagikpog@gagikpog.ru', process.env.VAPID_PUBLIC, process.env.VAPID_PRIVATE);
 
 // Middleware
 app.use(
@@ -53,6 +57,7 @@ app.use('/meme', rssRoutes); // public RSS at /meme/rss.xml
 // Routes
 app.use('/meme/api/memes', auth, memeRoutes);
 app.use('/meme/api/users', auth, requireAdminAccess, userRoutes);
+app.use('/meme/push', pushRoutes);
 
 // Обработка 404 - маршрут не найден
 app.use((req, res, next) => {

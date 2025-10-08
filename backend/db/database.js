@@ -53,6 +53,17 @@ db.serialize(() => {
     CREATE INDEX IF NOT EXISTS idx_user_sessions_user_active
     ON user_sessions (user_id, is_active)
   `);
+
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS subscriptions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      endpoint TEXT UNIQUE,
+      keys_p256dh TEXT,
+      keys_auth TEXT
+    )
+  `);
+
 });
 
 module.exports = db;
