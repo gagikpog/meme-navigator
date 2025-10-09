@@ -18,5 +18,5 @@ export const authFetch = (url, options = {}) => {
       throw new Error((await response.json())?.message);
     }
     return response;
-  })
+  });
 };

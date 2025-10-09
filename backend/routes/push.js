@@ -4,6 +4,7 @@ const db = require('../db/database');
 const router = express.Router();
 const webpush = require('web-push');
 const sendNotifications = require('../utils/sendNotifications');
+const { requireWriteAccess, auth } = require('../middleware/auth');
 
 // === POST /subscribe ===
 // Добавляем или обновляем подписку в базе
@@ -33,7 +34,7 @@ router.post('/subscribe', (req, res) => {
 
 // === POST /notify ===
 // Отправляем уведомления всем пользователям
-router.post('/notify', (req, res) => {
+router.post('/notify', requireWriteAccess, (req, res) => {
     const payload = {
         title: 'Новое изображение!',
         body: 'Админ добавил картинку',
