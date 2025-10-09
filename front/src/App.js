@@ -6,6 +6,7 @@ import Header from './components/Header';
 import routes from "./router";
 import { useEffect } from 'react';
 import { ensureDeviceId } from './utils/deviceId';
+import { SW } from './components/SW';
 
 function App() {
   useEffect(() => {
@@ -22,6 +23,7 @@ function App() {
                   <Route key={idx} path={path} element={element} />
                 ))}
               </Routes>
+              <SW />
             </Router>
         </MemeProvider>
       </AuthProvider>

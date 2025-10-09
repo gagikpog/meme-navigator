@@ -6,24 +6,22 @@ export default function runServiceWorker() {
     // Register service worker in production builds
     if ( 'serviceWorker' in navigator) {
         console.log('Registering service worker');
-        window.addEventListener('load', () => {
-            const version = 1;
-            isCurrentVersion(version).then((done) => {
-                if (!done) {
-                    console.log('Service Worker: Version changed');
-                    return unregister().then((needReload) => {
-                        if (needReload) {
-                            window.navigation.reload();
-                            return;
-                        }
-                        return register(version);
-                    }).catch((error) => {
-                        console.log('Service Worker: Update failed with' + error);
-                    });
-                }
-            }).finally(() => {
-                getNotifyPermission(version);
-            })
+        const version = 1;
+        isCurrentVersion(version).then((done) => {
+            if (!done) {
+                console.log('Service Worker: Version changed');
+                return unregister().then((needReload) => {
+                    if (needReload) {
+                        window.navigation.reload();
+                        return;
+                    }
+                    return register(version);
+                }).catch((error) => {
+                    console.log('Service Worker: Update failed with' + error);
+                });
+            }
+        }).finally(() => {
+            getNotifyPermission(version);
         });
     }
 }
