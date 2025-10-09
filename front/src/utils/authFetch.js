@@ -2,11 +2,13 @@ import { API_URL } from "../config";
 
 export const authFetch = (url, options = {}) => {
   const token = localStorage.getItem('token');
+  const deviceId = localStorage.getItem('deviceId');
   return fetch(`${API_URL}${url}`, {
     ...options,
     headers: {
       ...options.headers,
       Authorization: `Bearer ${token}`,
+      'device-id': deviceId
     },
   }).then(async (response) => {
 

@@ -50,7 +50,14 @@ app.use(express.urlencoded({ limit: '10mb', extended: true }));
 // Trust proxy for accurate IP addresses
 app.set('trust proxy', true);
 
-app.use('/meme/images', auth, express.static(path.join(__dirname, 'public/images')));
+app.use('/meme/images', auth, (req, res, next) => {
+  const staticMiddleware = express.static(path.join(__dirname, 'public/images'));
+  staticMiddleware(req, res, (err) => {
+    if (err || res.headersSent) return;
+    // Файл не найден — отдаем заглушку
+    res.sendFile(path.join(__dirname, 'public/404.png'));
+  });
+});
 
 // Routes
 app.use('/meme/api/auth', authRoutes);

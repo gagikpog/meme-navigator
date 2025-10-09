@@ -50,14 +50,15 @@ const updateUserSession = (userId, deviceId, req) => {
 // Вход в систему
 router.post('/login', async (req, res) => {
   try {
-    const { username, password, deviceId } = req.body;
+    const { username, password } = req.body;
+    const { 'device-id': deviceId } = req.headers;
 
     if (!username || !password) {
       return res.status(400).json({ message: 'Логин и пароль обязательны' });
     }
 
     if (!deviceId) {
-      return res.status(400).json({ message: 'deviceId обязателен' });
+      return res.status(400).json({ message: 'deviceId обязателен',headers: JSON.stringify(req.headers) });
     }
 
     // Ищем пользователя в базе данных
