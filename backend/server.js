@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const webpush = require('web-push');
 const path = require('path');
-const { auth, requireAdminAccess } = require('./middleware/auth');
+const { auth, requireAdminAccess, authWithoutDeviceId } = require('./middleware/auth');
 const memeRoutes = require('./routes/memes');
 const pushRoutes = require('./routes/push');
 const rssRoutes = require('./routes/rss');
@@ -50,7 +50,7 @@ app.use(express.urlencoded({ limit: '10mb', extended: true }));
 // Trust proxy for accurate IP addresses
 app.set('trust proxy', true);
 
-app.use('/meme/images', auth, (req, res, next) => {
+app.use('/meme/images', authWithoutDeviceId, (req, res, next) => {
   const staticMiddleware = express.static(path.join(__dirname, 'public/images'));
   staticMiddleware(req, res, (err) => {
     if (err || res.headersSent) return;
@@ -61,7 +61,7 @@ app.use('/meme/images', auth, (req, res, next) => {
 
 // Routes
 app.use('/meme/api/auth', authRoutes);
-app.use('/meme', auth, rssRoutes); // public RSS at /meme/rss.xml
+app.use('/meme', authWithoutDeviceId, rssRoutes); // public RSS at /meme/rss.xml
 app.use('/meme/api/memes', auth, memeRoutes);
 app.use('/meme/api/users', auth, requireAdminAccess, userRoutes);
 app.use('/meme/push', pushRoutes);

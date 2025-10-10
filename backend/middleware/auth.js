@@ -4,8 +4,13 @@ const db = require('../db/database');
 require('dotenv').config();
 const SECRET = process.env.JWT_SECRET;
 
-// Middleware для проверки аутентификации
-const auth = (req, res, next) => {
+const initToken = (req, res, next) => {
+
+  if (!SECRET) {
+    console.error('JWT_SECRET is empty');
+    return res.status(500).json({ message: 'Внутренняя ошибка' });
+  }
+
   // Skip auth for CORS preflight
   if (req.method === 'OPTIONS') {
     return res.sendStatus(204);
@@ -19,11 +24,21 @@ const auth = (req, res, next) => {
   };
 
   try {
-    if (!SECRET) {
-      console.error('JWT_SECRET is empty');
-      throw new ERROR('JWT_SECRET is empty');
-    }
     const decoded = jwt.verify(token, SECRET);
+    req.user = decoded;
+    return next();
+  } catch {
+    return res.status(403).json({ message: 'Неверный токен' });
+  }
+}
+
+const baseAuth = (req, res, next) => {
+  if (!req.user) {
+    return res.status(401).json({ message: 'Нет токена' });
+  }
+
+  try {
+    const decoded = req.user;
 
     // Проверяем, не заблокирован ли пользователь
     db.get(
@@ -68,7 +83,39 @@ const auth = (req, res, next) => {
   } catch {
     res.status(403).json({ message: 'Неверный токен' });
   }
+}
+
+const initDeviceId = (req, res, next) => {
+  const deviceId = req.headers['device-id'];
+  if (!deviceId) {
+    return res.status(400).json({ message: 'Отсутствует device-id в заголовках' });
+  }
+
+  const user = req.user;
+  if (user.deviceId !== deviceId) {
+    return res.status(401).json({ message: 'Неверный токен' });
+  }
+
+  next();
+}
+
+// Middleware для проверки аутентификации
+const auth = (req, res, next) => {
+  return initToken(req, res, () => {
+    return initDeviceId(req, res, () => {
+      return baseAuth(req, res, next);
+    });
+  });
 };
+
+// Middleware для проверки аутентификации
+const authWithoutDeviceId = (req, res, next) => {
+  return initToken(req, res, () => {
+    return baseAuth(req, res, next);
+  });
+};
+
+
 
 // Middleware для проверки прав на чтение (пользователь или админ)
 const requireReadAccess = (req, res, next) => {
@@ -97,4 +144,4 @@ const requireAdminAccess = (req, res, next) => {
   }
 };
 
-module.exports = { auth, requireReadAccess, requireWriteAccess, requireAdminAccess };
+module.exports = { auth, authWithoutDeviceId, requireReadAccess, requireWriteAccess, requireAdminAccess };
