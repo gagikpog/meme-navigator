@@ -10,8 +10,13 @@ const auth = (req, res, next) => {
   if (req.method === 'OPTIONS') {
     return res.sendStatus(204);
   }
-  const token = req.headers.authorization?.split(' ')[1];
-  if (!token) return res.status(401).json({ message: 'Нет токена' });
+
+  const token = req.query.authorization || req.headers.authorization?.split(' ')[1];
+  req.token = token;
+
+  if (!token) {
+    return res.status(401).json({ message: 'Нет токена' });
+  };
 
   try {
     if (!SECRET) {

@@ -2,7 +2,6 @@ const express = require('express');
 const db = require('../db/database');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
-const SECRET = process.env.JWT_SECRET;
 
 const router = express.Router();
 
@@ -26,25 +25,7 @@ function guessMimeFromFilename(filename) {
 }
 
 router.get('/rss.xml', (req, res) => {
-  const token = req.query.authorization;
-  if (!token) {
-    return res.status(401).send('Authorization token is required');
-  }
-
-  if (!SECRET) {
-    return res.status(500).send('JWT secret not configured');
-  }
-
-  let decoded;
-  try {
-    decoded = jwt.verify(token, SECRET);
-  } catch (e) {
-    return res.status(403).send('Invalid token');
-  }
-
-  if (!decoded?.id || !decoded?.deviceId) {
-    return res.status(401).send('Invalid session');
-  }
+  const decoded = req.user;
 
   db.get(
     'SELECT is_blocked FROM users WHERE id = ?',
@@ -98,7 +79,7 @@ function generateRss(req, res) {
       }
       const link = `${FRONT_BASE_URL}/meme/${encodeURIComponent(fileName)}`;
       const guid = link;
-      const enclosureUrl = `${API_BASE_URL}/images/${encodeURIComponent(fileName)}`;
+      const enclosureUrl = `${API_BASE_URL}/images/${encodeURIComponent(fileName)}?authorization=${req.token}`;
       const mime = guessMimeFromFilename(fileName);
 
       // Try to parse timestamp from file name prefix (Date.now() used at upload)
