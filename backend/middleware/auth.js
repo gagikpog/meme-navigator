@@ -1,5 +1,4 @@
 const jwt = require('jsonwebtoken');
-const { ERROR } = require('sqlite3');
 const db = require('../db/database');
 require('dotenv').config();
 const SECRET = process.env.JWT_SECRET;
@@ -74,6 +73,10 @@ const baseAuth = (req, res, next) => {
               return res.status(401).json({ message: 'Сессия завершена. Выполните вход снова.' });
             }
 
+            if (session.id !== decoded.sessionId) {
+              return res.status(401).json({ message: 'Сессия недействительна' });
+            }
+
             req.user = decoded;
             next();
           }
@@ -114,8 +117,6 @@ const authWithoutDeviceId = (req, res, next) => {
     return baseAuth(req, res, next);
   });
 };
-
-
 
 // Middleware для проверки прав на чтение (пользователь или админ)
 const requireReadAccess = (req, res, next) => {

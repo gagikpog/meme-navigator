@@ -13,38 +13,51 @@ const updateUserSession = (userId, deviceId, req) => {
   const ipAddress = req.ip || req.connection.remoteAddress || '';
   const userAgent = req.get('User-Agent') || '';
 
-  // Проверяем, есть ли уже активная сессия с этим device_id
-  db.get(
-    'SELECT id FROM user_sessions WHERE user_id = ? AND device_id = ? AND is_active = 1',
-    [userId, deviceId],
-    (err, existingSession) => {
-      if (err) {
-        console.error('Error checking existing session:', err);
-        return;
-      }
+  return new Promise((resolve, reject) => {
+    // Проверяем, есть ли уже активная сессия с этим device_id
+    db.get(
+      'SELECT id FROM user_sessions WHERE user_id = ? AND device_id = ? AND is_active = 1',
+      [userId, deviceId],
+      (err, existingSession) => {
+        if (err) {
+          console.error('Error checking existing session:', err);
+          reject(err);
+          return;
+        }
 
-      if (existingSession) {
-        // Обновляем существующую сессию
-        db.run(
-          'UPDATE user_sessions SET last_activity = CURRENT_TIMESTAMP WHERE id = ?',
-          [existingSession.id],
-          (err) => {
-            if (err) console.error('Error updating session:', err);
-          }
-        );
-      } else {
-        // Создаем новую сессию
-        db.run(
-          `INSERT INTO user_sessions (user_id, device_id, device_info, ip_address, user_agent)
-           VALUES (?, ?, ?, ?, ?)`,
-          [userId, deviceId, deviceInfo, ipAddress, userAgent],
-          (err) => {
-            if (err) console.error('Error creating session:', err);
-          }
-        );
+        if (existingSession) {
+          // Обновляем существующую сессию
+          db.run(
+            'UPDATE user_sessions SET last_activity = CURRENT_TIMESTAMP WHERE id = ?',
+            [existingSession.id],
+            (err) => {
+              if (err) {
+                console.error('Error updating session:', err);
+                reject(err);
+                return;
+              }
+              resolve(existingSession.id);
+            }
+          );
+        } else {
+          // Создаем новую сессию
+          db.run(
+            `INSERT INTO user_sessions (user_id, device_id, device_info, ip_address, user_agent)
+            VALUES (?, ?, ?, ?, ?)`,
+            [userId, deviceId, deviceInfo, ipAddress, userAgent],
+            function(err) {
+              if (err) {
+                console.error('Error creating session:', err)
+                reject(err);
+                return;
+              }
+              resolve(this.lastID);
+            }
+          );
+        }
       }
-    }
-  );
+    );
+  });
 };
 
 // Вход в систему
@@ -95,12 +108,13 @@ router.post('/login', async (req, res) => {
         );
 
         // Записываем/обновляем сессию устройства
-        updateUserSession(user.id, deviceId, req);
+        const sessionId = await updateUserSession(user.id, deviceId, req);
 
         // Создаем JWT токен
         const token = jwt.sign(
           {
             id: user.id,
+            sessionId: sessionId,
             username: user.username,
             role: user.role,
             deviceId: deviceId
