@@ -24,7 +24,8 @@ router.post('/subscribe', (req, res) => {
         ON CONFLICT(endpoint) DO UPDATE SET keys_p256dh = excluded.keys_p256dh, keys_auth = excluded.keys_auth
     `;
 
-    db.run(query, [endpoint, keys.p256dh, keys.auth, sessionId, id], err => {
+    db.run(query, [endpoint, keys.p256dh, keys.auth, sessionId, id], (err) => {
+      db.close();
       if (err) {
         console.error('Ошибка при сохранении подписки:', err);
         return res.status(500).json({ error: 'Ошибка базы данных' });
