@@ -24,7 +24,8 @@ db.serialize(() => {
       fileName TEXT NOT NULL,
       tags TEXT,
       description TEXT,
-      permissions TEXT DEFAULT 'private')
+      permissions TEXT DEFAULT 'private',
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP)
   `);
 
   // Таблица сессий пользователей (как в миграции 004)
