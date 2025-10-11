@@ -45,6 +45,7 @@ const baseAuth = (req, res, next) => {
       [decoded.id],
       (err, user) => {
         if (err) {
+          console.error('Database error during user status check:', err);
           return res.status(500).json({ message: 'Ошибка проверки статуса пользователя' });
         }
 
