@@ -67,9 +67,9 @@ function sendNotifications(data, filter = {}) {
 
 function filterSubscriptionsByActiveSession(rows) {
     return new Promise((resolve, reject) => {
-        const sessionIds = [...new Set(rows.map(r => r.session_id).filter(id => id))].join(',');
+        const sessionIds = [...new Set(rows.map(r => r.session_id).filter(Boolean))];
 
-        db.all("SELECT id from user_sessions WHERE is_active = 1 AND id IN (?)", [sessionIds], (err, sessions) => {
+        db.all(`SELECT id from user_sessions WHERE is_active = 1 AND id IN (${sessionIds.map(() => '?').join(',')})`, sessionIds, (err, sessions) => {
             if (err) {
                 console.error("Ошибка чтения активных сессий:", err);
                 reject("Ошибка базы данных");
