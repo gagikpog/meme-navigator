@@ -28,8 +28,7 @@ function sendNotifications(data, filter = {}) {
                 return reject("Ошибка базы данных");
             }
 
-            // TODO: включить после оповещения всех пользователей о выходе из аккаунта на всех устройствах
-            // rows = await filterSubscriptionsByActiveSession(rows);
+            rows = await filterSubscriptionsByActiveSession(rows);
 
             console.log(`notify to ${rows.length} subscriptions, payload: ${payload}`);
 

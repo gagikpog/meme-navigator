@@ -37,7 +37,7 @@ function closeDatabase() {
     if (err) {
       console.error('Error closing database:', err.message);
     } else {
-      console.log('Migration 005 completed successfully');
+      console.log('Migration 006 completed successfully');
     }
   });
 }
