@@ -25,11 +25,6 @@ const ImageWithAuth = ({ src, alt = '', className = '' }) => {
     };
 
     loadImage();
-
-    // Очистка
-    return () => {
-      if (blobUrl) URL.revokeObjectURL(blobUrl);
-    };
   }, [src]);
 
   return blobUrl ? <img src={blobUrl} alt={alt} className={className} /> : <div>Загрузка...</div>;
