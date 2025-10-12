@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import React, { useEffect, useMemo, useState } from 'react';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useMemes } from '../context/MemeContext';
 import { useAuth } from '../context/AuthContext';
 import { IMAGE_URL } from '../config';
@@ -12,7 +12,14 @@ const MemeDetail = () => {
   const { fileName } = useParams();
   const navigate = useNavigate();
   const { canEdit, canDelete } = useAuth();
-  const meme = memes.find(m => m.fileName === fileName);
+
+  const currentMemeIndex = useMemo(() => {
+    return memes.findIndex(m => m.fileName === fileName);
+  }, [fileName, memes]);
+
+  const meme = memes[currentMemeIndex];
+  const prevMeme = memes[(currentMemeIndex - 1 + memes.length) % memes.length];
+  const nextMeme = memes[(currentMemeIndex + 1) % memes.length];
 
   const [tags, setTags] = useState(meme?.tags.join(', ') || '');
   const [description, setDescription] = useState(meme?.description || '');
@@ -64,24 +71,43 @@ const MemeDetail = () => {
     }
   };
 
+  const linkPropagation = (event) => {
+    event.stopPropagation();
+  }
+
   return (
     <>
-      <div className="max-w-6xl mx-auto p-4">
+      <div className="max-w-6xl mx-auto p-4 relative">
         {/* Картинка на всю ширину и высоту экрана */}
-        <div className="w-full h-[calc(100vh-150px)] overflow-hidden rounded mb-6">
+        <div className="absolute top-0 left-4 bg-black bg-opacity-50 text-white text-sm px-2 py-1 rounded z-10">
+          {currentMemeIndex + 1} из {memes.length}
+        </div>
+        <div className="w-full h-[calc(100vh-150px)] overflow-hidden rounded mb-6 relative">
           <div
             className="w-full h-[calc(100vh-150px)] flex items-center justify-center overflow-hidden bg-gray-50 rounded mb-6 cursor-pointer"
             onClick={() => setShowModal(true)}
           >
-
             <ImageWithAuth
               src={`${IMAGE_URL}/${meme.fileName}`}
               alt={meme.fileName}
               className="w-full h-full object-contain"
             />
+             <Link to={`/meme/${prevMeme.fileName}`} className="text-xl font-bold text-gray-900 hover:text-blue-600 transition-colors" onClick={linkPropagation}>
+              <div className="absolute top-50 left-0 bg-black bg-opacity-50 text-white py-1 rounded" >
+                <svg height="50px" width="50px" viewBox="0 0 34 34" fill='currentColor'>
+                  <path d="M24.57,34.075c-0.505,0-1.011-0.191-1.396-0.577L8.11,18.432c-0.771-0.771-0.771-2.019,0-2.79 L23.174,0.578c0.771-0.771,2.02-0.771,2.791,0s0.771,2.02,0,2.79l-13.67,13.669l13.67,13.669c0.771,0.771,0.771,2.021,0,2.792 C25.58,33.883,25.075,34.075,24.57,34.075z"/>
+                </svg>
+              </div>
+            </Link>
+            <Link to={`/meme/${nextMeme.fileName}`} className="text-xl font-bold text-gray-900 hover:text-blue-600 transition-colors" onClick={linkPropagation}>
+              <div className="absolute top-50 right-0 bg-black bg-opacity-50 text-white py-1 rounded" >
+                <svg height="50px" width="50px" viewBox="0 0 34 34" fill='currentColor' className='rotate-180'>
+                  <path d="M24.57,34.075c-0.505,0-1.011-0.191-1.396-0.577L8.11,18.432c-0.771-0.771-0.771-2.019,0-2.79 L23.174,0.578c0.771-0.771,2.02-0.771,2.791,0s0.771,2.02,0,2.79l-13.67,13.669l13.67,13.669c0.771,0.771,0.771,2.021,0,2.792 C25.58,33.883,25.075,34.075,24.57,34.075z"/>
+                </svg>
+              </div>
+             </Link>
           </div>
         </div>
-
 
         {/* Блок редактирования внизу */}
         <div className="mt-8 border-t pt-6">
