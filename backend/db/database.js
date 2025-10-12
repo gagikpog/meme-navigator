@@ -13,7 +13,10 @@ db.serialize(() => {
       role TEXT NOT NULL DEFAULT 'user',
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       is_blocked INTEGER DEFAULT 0,
-      last_login DATETIME
+      last_login DATETIME,
+      name TEXT,
+      surname TEXT,
+      avatar TEXT
     )
   `);
 
