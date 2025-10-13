@@ -37,7 +37,7 @@ router.get('/', (req, res) => {
 
       // Получаем пользователей с пагинацией
       db.all(
-        `SELECT id, username, role, is_blocked, created_at, last_login
+        `SELECT id, username, name, surname, role, is_blocked, created_at, last_login
          FROM users ${whereClause}
          ORDER BY created_at DESC
          LIMIT ? OFFSET ?`,
@@ -87,10 +87,10 @@ router.get('/:id', (req, res) => {
 // Создать нового пользователя
 router.post('/', async (req, res) => {
   try {
-    const { username, password, role = 'user' } = req.body;
+    const { username, password, name, surname, role = 'user' } = req.body;
 
-    if (!username || !password) {
-      return res.status(400).json({ message: 'Логин и пароль обязательны' });
+    if (!username || !password || !name || !surname) {
+      return res.status(400).json({ message: 'Логин, пароль, имя и фамилия обязательны' });
     }
 
     if (password.length < 6) {
@@ -116,8 +116,8 @@ router.post('/', async (req, res) => {
 
         // Создаем пользователя
         db.run(
-          'INSERT INTO users (username, password_hash, role) VALUES (?, ?, ?)',
-          [username, password_hash, role],
+          'INSERT INTO users (username, password_hash, name, surname, role) VALUES (?, ?, ?, ?, ?)',
+          [username, password_hash, name, surname, role],
           function(err) {
             if (err) {
               return res.status(500).json({ message: 'Ошибка создания пользователя' });
@@ -144,7 +144,7 @@ router.post('/', async (req, res) => {
 router.put('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { username, password, role, is_blocked } = req.body;
+    const { username, name, surname, password, role, is_blocked } = req.body;
 
     // Проверяем, существует ли пользователь
     db.get(
@@ -187,6 +187,16 @@ router.put('/:id', async (req, res) => {
           if (username) {
             updateFields.push('username = ?');
             params.push(username);
+          }
+
+          if (name) {
+            updateFields.push('name = ?');
+            params.push(name);
+          }
+
+          if (surname) {
+            updateFields.push('surname = ?');
+            params.push(surname);
           }
 
           if (password) {

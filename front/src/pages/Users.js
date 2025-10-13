@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { authFetch } from '../utils/authFetch';
 import { useAuth } from '../context/AuthContext';
 
-const initialForm = { username: '', password: '', role: 'user' };
+const initialForm = { username: '', password: '', name: '', surname: '', role: 'user' };
 
 const formatShort = (value) => {
   if (!value) return '';
@@ -242,6 +242,8 @@ const Users = () => {
         <h2 className="font-semibold mb-2">{editingId ? 'Изменить пользователя' : 'Добавить пользователя'}</h2>
         <div className="flex gap-2 flex-wrap">
           <input className="border p-2 rounded" placeholder="Логин" autoComplete="off" value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} />
+          <input className="border p-2 rounded" placeholder="Имя" autoComplete="off" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+          <input className="border p-2 rounded" placeholder="Фамилия" autoComplete="off" value={form.surname} onChange={(e) => setForm({ ...form, surname: e.target.value })} />
           <div className="relative">
             <input className="border p-2 rounded pr-28" type={showPassword ? 'text' : 'password'} placeholder="Пароль" autoComplete="new-password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
             <button
@@ -312,6 +314,8 @@ const Users = () => {
             <tr className="bg-gray-100">
               <th className="p-2 border">ID</th>
               <th className="p-2 border">Логин</th>
+              <th className="p-2 border">Имя</th>
+              <th className="p-2 border">Фамилия</th>
               <th className="p-2 border">Роль</th>
               <th className="p-2 border">Статус</th>
               <th className="p-2 border">Сессии</th>
@@ -325,6 +329,8 @@ const Users = () => {
               <tr key={u.id} className="odd:bg-white even:bg-gray-50">
                 <td className="p-2 border">{u.id}</td>
                 <td className="p-2 border">{u.username}</td>
+                <td className="p-2 border">{u.name}</td>
+                <td className="p-2 border">{u.surname}</td>
                 <td className="p-2 border">{u.role}</td>
                 <td className="p-2 border">{u.is_blocked ? 'Заблокирован' : 'Активен'}</td>
                 <td className="p-2 border">
@@ -339,7 +345,7 @@ const Users = () => {
                     className="inline-flex items-center justify-center p-1.5 rounded hover:bg-gray-100 border"
                     title="Изменить пользователя"
                     aria-label="Изменить пользователя"
-                    onClick={() => { setEditingId(u.id); setForm({ username: u.username, password: '', role: u.role }); }}
+                    onClick={() => { setEditingId(u.id); setForm({ username: u.username, password: '', name: u.name, surname: u.surname, role: u.role }); }}
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M12 20h9"/>
