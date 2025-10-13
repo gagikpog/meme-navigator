@@ -7,6 +7,7 @@ import { IMAGE_URL } from '../config';
 import ImageWithAuth from '../components/ImageWithAuth';
 import compareText from '../utils/compareText';
 import { useMemo } from 'react';
+import formatDate from '../utils/formatDate';
 
 const Home = () => {
   const { memes, loading } = useMemes();
@@ -171,6 +172,9 @@ const Home = () => {
                     )}
                   </>
                 )}
+              </div>
+              <div className="text-xs text-gray-400">
+                {formatDate(img.created_at)}
               </div>
               <p className="text-xs text-gray-500 truncate">
                 {Array.isArray(img.tags) && img.tags.length > 0 ? `#${img.tags.slice(0, 3).join(' #')}${img.tags.length > 3 ? ' …' : ''}` : 'Без тегов'}
