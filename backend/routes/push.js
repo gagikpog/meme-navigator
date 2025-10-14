@@ -41,6 +41,7 @@ router.post('/notify', requireWriteAccess, (req, res) => {
     body = 'Админ добавил картинку',
     icon = '/icons/icon_x192.png',
     sessionIds,
+    url='/',
     userIds
   } = req.body;
 
@@ -48,7 +49,7 @@ router.post('/notify', requireWriteAccess, (req, res) => {
         title,
         body,
         icon,
-        url: '/'
+        url
     };
 
     sendNotifications(payload, { userIds, sessionIds }).then((data) => {
