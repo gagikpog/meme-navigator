@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { authFetch } from '../utils/authFetch';
 const cache = new Map();
 
-const ImageWithAuth = ({ src, alt = '', className = '' }) => {
+const ImageWithAuth = ({ src, alt = '', className = '', style = {} }) => {
   const [blobUrl, setBlobUrl] = useState(null);
 
   useEffect(() => {
@@ -27,7 +27,7 @@ const ImageWithAuth = ({ src, alt = '', className = '' }) => {
     loadImage();
   }, [src]);
 
-  return blobUrl ? <img src={blobUrl} alt={alt} className={className} /> : <div>Загрузка...</div>;
+  return blobUrl ? <img src={blobUrl} alt={alt} className={className} style={style} /> : <div>Загрузка...</div>;
 };
 
 export default ImageWithAuth;
