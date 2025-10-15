@@ -1,27 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { authFetch } from '../utils/authFetch';
 import { useAuth } from '../context/AuthContext';
+import formatDate from '../utils/formatDate';
 
 const initialForm = { username: '', password: '', name: '', surname: '', role: 'user' };
-
-const formatShort = (value) => {
-  if (!value) return '';
-  const d = new Date(value);
-  if (isNaN(d)) {
-    // fallback если пришла не ISO-строка
-    const s = String(value);
-    const base = s.slice(0, 10);
-    const [y, m, d2] = base.split('-');
-    if (y && m && d2) return `${d2}.${m}.${String(y).slice(-2)} ${s.slice(11,16)}`;
-    return s;
-  }
-  const dd = String(d.getDate()).padStart(2, '0');
-  const mm = String(d.getMonth() + 1).padStart(2, '0');
-  const yy = String(d.getFullYear()).slice(-2);
-  const hh = String(d.getHours()).padStart(2, '0');
-  const min = String(d.getMinutes()).padStart(2, '0');
-  return `${dd}.${mm}.${yy} ${hh}:${min}`;
-};
 
 const generateStrongPassword = () => {
   const lowers = 'abcdefghijklmnopqrstuvwxyz';
@@ -338,8 +320,8 @@ const Users = () => {
                     {u.sessionsCount ?? 0}
                   </button>
                 </td>
-                <td className="p-2 border">{formatShort(u.created_at)}</td>
-                <td className="p-2 border">{formatShort(u.last_login)}</td>
+                <td className="p-2 border">{formatDate(u.created_at)}</td>
+                <td className="p-2 border">{formatDate(u.last_login)}</td>
                 <td className="p-2 border space-x-2">
                   <button
                     className="inline-flex items-center justify-center p-1.5 rounded hover:bg-gray-100 border"
@@ -436,8 +418,8 @@ const Users = () => {
                       <td className="p-2 border">{s.device_id}</td>
                       <td className="p-2 border">{s.ip_address}</td>
                       <td className="p-2 border">{s.user_agent?.slice(0, 60)}</td>
-                      <td className="p-2 border">{formatShort(s.created_at)}</td>
-                      <td className="p-2 border">{formatShort(s.last_activity)}</td>
+                      <td className="p-2 border">{formatDate(s.created_at)}</td>
+                      <td className="p-2 border">{formatDate(s.last_activity)}</td>
                       <td className="p-2 border">{s.is_active ? 'Активна' : 'Завершена'}</td>
                       <td className="p-2 border">
                         {s.is_active && (
