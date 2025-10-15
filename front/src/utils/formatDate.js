@@ -15,7 +15,7 @@
 
 export default function formatDate(dateStr) {
   if (!dateStr) return '';
-  const date = new Date(dateStr.replace(' ', 'T'));
+  const date = new Date(dateStr.replace(' ', 'T') + 'Z');
   const day = String(date.getDate()).padStart(2, '0');
   const month = months[date.getMonth()];
   const year = String(date.getFullYear()).slice(-2);
