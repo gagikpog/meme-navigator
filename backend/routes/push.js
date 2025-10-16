@@ -40,9 +40,12 @@ router.post('/notify', requireWriteAccess, (req, res) => {
     title = 'Новое изображение!',
     body = 'Админ добавил картинку',
     icon = '/icons/icon_x192.png',
-    sessionIds,
     url='/',
-    userIds
+    sessionIds,
+    userIds,
+    excludeUserIds,
+    excludeSessionIds,
+    permissions
   } = req.body;
 
     const payload = {
@@ -52,7 +55,7 @@ router.post('/notify', requireWriteAccess, (req, res) => {
         url
     };
 
-    sendNotifications(payload, { userIds, sessionIds }).then((data) => {
+    sendNotifications(payload, { userIds, sessionIds, excludeUserIds, excludeSessionIds, permissions }).then((data) => {
         res.json(data);
     }).catch((error) => {
         res.status(500).json({ error: error.message });

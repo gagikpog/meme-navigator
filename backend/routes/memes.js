@@ -99,13 +99,18 @@ router.post('/', requireWriteAccess, upload.single('image'), (req, res) => {
     'INSERT INTO memes (fileName, tags, description, permissions) VALUES (?, ?, ?, ?)',
     [fileName, JSON.stringify(tagArray), description || '', permissions],
     function (err) {
-      if (err) return res.status(500).json({ error: err.message });
+      if (err) {
+        return res.status(500).json({ error: err.message })
+      };
 
       sendNotifications({
         title: 'Новое изображение!',
         body: (tagArray || []).map((tag) => `#${tag}`).join(' ') || description || 'без тегов',
         icon: '/icons/icon_x192.png',
-        url: `/meme/${fileName}`
+        url: `/meme/${fileName}`,
+      }, {
+        permissions: permissions === 'public' ? [] : ['admin', 'writer'],
+        excludeUserIds: [req.user.id]
       });
 
       res.status(201).json({
@@ -167,12 +172,18 @@ router.put('/:id', requireWriteAccess, (req, res) => {
           tagArray = updateTags.length ? updateTags : JSON.parse(meme.tags)
         } catch {}
 
-        sendNotifications({
-          title: 'Новое изображение!',
-          body: (tagArray || []).map((tag) => `#${tag}`).join(' ') || description || 'без тегов',
-          icon: '/icons/icon_x192.png',
-          url: `/meme/${meme.fileName}`
-        });
+        sendNotifications(
+          {
+            title: "Новое изображение!",
+            body:
+              (tagArray || []).map((tag) => `#${tag}`).join(" ") ||
+              description ||
+              "без тегов",
+            icon: "/icons/icon_x192.png",
+            url: `/meme/${meme.fileName}`,
+          },
+          { permissions: ["user"], excludeUserIds: [req.user.id] }
+        );
       }
 
       res.json({ updated: this.changes });

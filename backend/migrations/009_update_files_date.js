@@ -1,4 +1,4 @@
-// migrations/008_add_user_personal_data.js
+// migrations/009_update_files_date.js
 const sqlite3 = require("sqlite3").verbose();
 const path = require("path");
 const db = new sqlite3.Database(path.resolve(__dirname, "../db/memes.db"));
@@ -52,7 +52,7 @@ function closeDatabase() {
     if (err) {
       console.error("Error closing database:", err.message);
     } else {
-      console.log("Migration 007 completed successfully");
+      console.log("Migration 009 completed successfully");
     }
   });
 }
