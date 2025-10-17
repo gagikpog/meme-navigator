@@ -4,7 +4,10 @@ const path = require('path');
 const db = new sqlite3.Database(path.resolve(__dirname, 'memes.db'));
 
 db.serialize(() => {
-  // Создаем таблицу пользователей
+  // Включаем поддержку внешних ключей
+  db.run('PRAGMA foreign_keys = ON;');
+
+  // Таблица пользователей
   db.run(`
     CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -20,7 +23,7 @@ db.serialize(() => {
     )
   `);
 
-  // Создаем таблицу мемов с правами доступа
+  // Таблица мемов (теперь с user_id)
   db.run(`
     CREATE TABLE IF NOT EXISTS memes (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -28,10 +31,13 @@ db.serialize(() => {
       tags TEXT,
       description TEXT,
       permissions TEXT DEFAULT 'private',
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP)
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      user_id INTEGER NOT NULL,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    )
   `);
 
-  // Таблица сессий пользователей (как в миграции 004)
+  // Таблица сессий
   db.run(`
     CREATE TABLE IF NOT EXISTS user_sessions (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -47,7 +53,6 @@ db.serialize(() => {
     )
   `);
 
-  // Индексы для user_sessions
   db.run(`
     CREATE INDEX IF NOT EXISTS idx_user_sessions_device_id
     ON user_sessions (device_id)
@@ -58,6 +63,7 @@ db.serialize(() => {
     ON user_sessions (user_id, is_active)
   `);
 
+  // Таблица подписок (теперь с внешними ключами)
   db.run(`
     CREATE TABLE IF NOT EXISTS subscriptions (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -65,7 +71,9 @@ db.serialize(() => {
       keys_p256dh TEXT,
       keys_auth TEXT,
       session_id INTEGER,
-      user_id INTEGER
+      user_id INTEGER,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+      FOREIGN KEY (session_id) REFERENCES user_sessions(id) ON DELETE CASCADE
     )
   `);
 });
