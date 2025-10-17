@@ -30,8 +30,6 @@ function sendNotifications(data, filter = {}) {
             params.push(...filter.sessionIds);
         }
 
-        console.log("Executing query:", query, params);
-
         db.all(query, params, async (err, rows) => {
             if (err) {
                 console.error("Ошибка чтения подписок:", err);
@@ -40,7 +38,7 @@ function sendNotifications(data, filter = {}) {
 
             rows = filterSubscriptionsSession(rows, filter);
 
-            console.log(`notify to ${rows.length} subscriptions, payload: ${payload}`, rows);
+            console.log(`notify to ${rows.length} subscriptions, payload: ${payload}`);
 
             const results = await Promise.all(
                 rows.map(async (sub) => {
