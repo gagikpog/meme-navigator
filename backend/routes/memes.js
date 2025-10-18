@@ -4,6 +4,7 @@ const path = require('path');
 const db = require('../db/database');
 const { requireReadAccess, requireWriteAccess } = require('../middleware/auth');
 const sendNotifications = require('../utils/sendNotifications');
+const { deleteImage } = require('../utils/fileManager');
 
 const router = express.Router();
 
@@ -96,8 +97,8 @@ router.post('/', requireWriteAccess, upload.single('image'), (req, res) => {
   }
 
   db.run(
-    'INSERT INTO memes (fileName, tags, description, permissions) VALUES (?, ?, ?, ?)',
-    [fileName, JSON.stringify(tagArray), description || '', permissions],
+    'INSERT INTO memes (fileName, tags, description, permissions, user_id) VALUES (?, ?, ?, ?, ?)',
+    [fileName, JSON.stringify(tagArray), description || '', permissions, req.user.id],
     function (err) {
       if (err) {
         return res.status(500).json({ error: err.message })
@@ -201,6 +202,7 @@ router.delete('/:id', requireWriteAccess, (req, res) => {
     db.run('DELETE FROM memes WHERE id = ?', [req.params.id], function (err) {
       if (err) return res.status(500).json({ error: err.message });
       res.json({ deleted: this.changes });
+      deleteImage(meme.fileName);
     });
   });
 });
