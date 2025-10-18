@@ -73,14 +73,21 @@ const MemeDetail = () => {
 
   const linkPropagation = (event) => {
     event.stopPropagation();
-  }
+  };
 
   return (
     <>
       <div className="max-w-6xl mx-auto p-4 relative">
         {/* Картинка на всю ширину и высоту экрана */}
-        <div className="absolute top-0 left-4 bg-black bg-opacity-50 text-white text-sm px-2 py-1 rounded z-10">
-          {currentMemeIndex + 1} из {memes.length}
+        <div className='sticky top-14 z-10 flex justify-end mb-2 pointer-events-none'>
+          <div className="bg-black bg-opacity-50 text-white text-sm px-2 rounded flex items-center">
+            {currentMemeIndex + 1} из {memes.length}
+          </div>
+          <div onClick={() => navigate(-1)} className='bg-black bg-opacity-50 text-white text-sm px-1 py-1 rounded-full z-10 cursor-pointer ml-4 pointer-events-auto'>
+            <svg width="25" height="25" viewBox="0 0 24 24">
+              <path fill="currentColor" d="M5.29289 5.29289C5.68342 4.90237 6.31658 4.90237 6.70711 5.29289L12 10.5858L17.2929 5.29289C17.6834 4.90237 18.3166 4.90237 18.7071 5.29289C19.0976 5.68342 19.0976 6.31658 18.7071 6.70711L13.4142 12L18.7071 17.2929C19.0976 17.6834 19.0976 18.3166 18.7071 18.7071C18.3166 19.0976 17.6834 19.0976 17.2929 18.7071L12 13.4142L6.70711 18.7071C6.31658 19.0976 5.68342 19.0976 5.29289 18.7071C4.90237 18.3166 4.90237 17.6834 5.29289 17.2929L10.5858 12L5.29289 6.70711C4.90237 6.31658 4.90237 5.68342 5.29289 5.29289Z"/>
+            </svg>
+          </div>
         </div>
         <div className="w-full h-[calc(100vh-150px)] overflow-hidden rounded mb-6 relative">
           <div

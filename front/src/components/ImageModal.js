@@ -20,7 +20,6 @@ const ImageModal = ({ src, onClose }) => {
   }, [onClose]);
 
   const handleWheel = (e) => {
-    e.preventDefault();
     const delta = -e.deltaY;
     const zoomSpeed = 0.001;
     const newScale = Math.min(Math.max(0.2, scale + delta * zoomSpeed), 5);

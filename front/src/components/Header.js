@@ -52,26 +52,25 @@ const Header = () => {
               title="Хронология"
             >
               <span>
-                <svg width="16px" height="16px" viewBox="0 0 48 48" fill="none">
-                  <g clip-path="url(#clip0)">
-                  <rect width="48" height="48" fill="white" fill-opacity="0.01"/>
-                  <path d="M48 0H0V48H48V0Z" fill="white" fill-opacity="0.01"/>
-                  <path d="M13 12C13 14.2091 14.7909 16 17 16C19.2091 16 21 14.2091 21 12C21 9.79086 19.2091 8 17 8C14.7909 8 13 9.79086 13 12Z" fill="#2F88FF" stroke="#000000" stroke-width="4" stroke-linejoin="round"/>
-                  <path d="M31 24C31 26.2091 32.7909 28 35 28C37.2091 28 39 26.2091 39 24C39 21.7909 37.2091 20 35 20C32.7909 20 31 21.7909 31 24Z" fill="#2F88FF" stroke="#000000" stroke-width="4" stroke-linejoin="round"/>
-                  <path d="M13 36C13 38.2091 14.7909 40 17 40C19.2091 40 21 38.2091 21 36C21 33.7909 19.2091 32 17 32C14.7909 32 13 33.7909 13 36Z" fill="#2F88FF" stroke="#000000" stroke-width="4" stroke-linejoin="round"/>
-                  <path d="M4 36H13" stroke="#000000" stroke-width="4" stroke-linecap="round"/>
-                  <path d="M21 36H44" stroke="#000000" stroke-width="4" stroke-linecap="round"/>
-                  <path d="M4 12H13" stroke="#000000" stroke-width="4" stroke-linecap="round"/>
-                  <path d="M21 12H44" stroke="#000000" stroke-width="4" stroke-linecap="round"/>
-                  <path d="M4 4V44" stroke="#000000" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-                  <path d="M4 24H31" stroke="#000000" stroke-width="4" stroke-linecap="round"/>
-                  <path d="M39 24H44" stroke="#000000" stroke-width="4" stroke-linecap="round"/>
+                <svg width="16" height="16" viewBox="0 0 48 48" stroke="currentColor" fill="#fff" strokeWidth="2" strokeLinecap="round">
+                  <path d="M 43.903647,4 H 4.098789" strokeWidth="4" />
+                  <path d="M 24,4.2285755 V 43.571404" strokeWidth="3" />
+                  <g transform="translate(0.092388,1.1301115)">
+                    <path d="M 32.411973,11.326074 H 26.205706" />
+                    <circle cx="36.8" cy="11.5" r="4" />
+                    <circle cx="23.8" cy="11.247408" r="2" />
                   </g>
-                  <defs>
-                    <clipPath id="clip0">
-                    <rect width="48" height="48" fill="white"/>
-                    </clipPath>
-                  </defs>
+                  <g transform="matrix(-1,0,0,1,48.055811,8.5567916)">
+                    <path d="M 32.411973,11.326074 H 26.205706" />
+                    <circle cx="36.8" cy="11.5" r="4" />
+                    <circle cx="23.8" cy="11.247408" r="2" />
+                  </g>
+                  <g transform="translate(0.092388,24.600582)">
+                    <path d="M 32.411973,11.326074 H 26.205706" />
+                    <circle cx="36.8" cy="11.5" r="4" />
+                    <circle cx="23.8" cy="11.247408" r="2" />
+                  </g>
+
                 </svg>
               </span>
             </Link>
