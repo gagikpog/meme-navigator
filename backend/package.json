@@ -2,11 +2,12 @@
   "name": "backend",
   "version": "1.0.0",
   "description": "",
-  "main": "server.js",
+  "main": "dist/server.js",
   "scripts": {
-    "dev": "nodemon server.js",
-    "add-user": "node scripts/add-user.js",
-    "migrate": "node migrations/003_change_meme_column_values.js"
+    "build": "tsc",
+    "dev": "ts-node src/server.ts",
+    "start": "node dist/server.js",
+    "dev:watch": "nodemon --exec ts-node src/server.ts"
   },
   "keywords": [],
   "author": "",
@@ -22,20 +23,27 @@
     "web-push": "^3.6.7"
   },
   "devDependencies": {
-    "nodemon": "^3.1.0"
+    "@types/bcryptjs": "^3.0.0",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.3",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/multer": "^2.0.0",
+    "@types/node": "^24.8.1",
+    "@types/sqlite3": "^5.1.0",
+    "@types/web-push": "^3.6.4",
+    "nodemon": "^3.1.10",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
   },
   "nodemonConfig": {
     "watch": [
-      "server.js",
-      "routes",
-      "middleware",
-      "db",
-      "rss.js"
+      "src"
     ],
-    "ext": "js,json",
+    "ext": "ts,js,json",
     "ignore": [
       "public/images",
       "node_modules",
+      "dist",
       "**/*.db",
       "**/*.db-wal",
       "**/*.db-shm"

@@ -1,7 +1,8 @@
 // migrations/009_update_files_date.js
-const sqlite3 = require("sqlite3").verbose();
-const path = require("path");
-const db = new sqlite3.Database(path.resolve(__dirname, "../db/memes.db"));
+import sqlite3 from 'sqlite3';
+import path from 'path';
+const sqlite = sqlite3.verbose();
+const db = new sqlite.Database(path.resolve(__dirname, "../../memes.db"));
 // const { readFileSync, writeFileSync } = require("fs");
 
 // / Миграция: добавление персональных данных пользователей
@@ -18,7 +19,7 @@ db.serialize(async () => {
   }
 });
 
-function run(item) {
+function run(item: { date: string, file: string}) {
   const query = `UPDATE memes SET created_at = '${item.date}' WHERE fileName = '${item.file}';`;
   return new Promise((resolve, reject) => {
     db.run(query, function (err) {
@@ -28,12 +29,13 @@ function run(item) {
       if (err) {
         reject("Ошибка при обновлении: " + query + " " + err.message);
       } else {
-        resolve();
+        resolve(true);
       }
     });
   });
 }
 
+// @ts-ignore
 function clear() {
   const query = `UPDATE memes SET created_at = NULL;`;
   return new Promise((resolve, reject) => {
@@ -41,7 +43,7 @@ function clear() {
       if (err) {
         reject("Ошибка при обновлении: " + query + " " + err.message);
       } else {
-        resolve();
+        resolve(true);
       }
     });
   });
@@ -1077,6 +1079,7 @@ function getData() {
   ];
 }
 
+// @ts-ignore
 function getLocalData() {
   return [
     { date: "2025-07-27 16:05:24", file: "--.jpg" },

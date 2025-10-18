@@ -1,7 +1,10 @@
 // migrations/006_add_session_and_user_to_subscribers.js
-const sqlite3 = require('sqlite3').verbose();
-const path = require('path');
-const db = new sqlite3.Database(path.resolve(__dirname, '../db/memes.db'));
+import sqlite3 from 'sqlite3';
+import path from 'path';
+
+const sqlite = sqlite3.verbose();
+
+const db = new sqlite.Database(path.resolve(__dirname, '../../memes.db'));
 
 db.serialize(() => {
   db.run(

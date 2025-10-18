@@ -1,8 +1,8 @@
-const sqlite3 = require('sqlite3').verbose();
+import sqlite3 from 'sqlite3';
+const sqlite = sqlite3.verbose();
+const db = new sqlite.Database('../../memes.db');
 
-const db = new sqlite3.Database('../db/memes.db');
-
-db.all('PRAGMA table_info(memes)', (err, columns) => {
+db.all('PRAGMA table_info(memes)', (err, columns: {name: string}[]) => {
   if (err) throw err;
 
   const hasDescription = columns.some((col) => col.name === 'description');

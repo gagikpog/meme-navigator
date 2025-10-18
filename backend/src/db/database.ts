@@ -1,7 +1,8 @@
-const sqlite3 = require('sqlite3').verbose();
-const path = require('path');
+import sqlite3 from 'sqlite3';
+import path from 'path';
 
-const db = new sqlite3.Database(path.resolve(__dirname, 'memes.db'));
+const sqlite = sqlite3.verbose();
+const db = new sqlite.Database(path.resolve(__dirname, '../../memes.db'));
 
 db.serialize(() => {
   // Включаем поддержку внешних ключей
@@ -78,4 +79,5 @@ db.serialize(() => {
   `);
 });
 
-module.exports = db;
+export default db;
+

@@ -1,15 +1,17 @@
-const express = require('express');
-const bcrypt = require('bcryptjs');
-const db = require('../db/database');
+import express, { Response } from 'express';
+import bcrypt from 'bcryptjs';
+import db from '../db/database';
+import { User } from '../types';
+
 const router = express.Router();
 
 // Получить всех пользователей (только для админов)
-router.get('/', (req, res) => {
+router.get('/', (req: any, res: Response) => {
   const { page = 1, limit = 10, search = '', role = '', blocked = '' } = req.query;
-  const offset = (page - 1) * limit;
+  const offset = (Number(page) - 1) * Number(limit);
 
   let whereClause = 'WHERE 1=1';
-  let params = [];
+  let params: any[] = [];
 
   if (search) {
     whereClause += ' AND username LIKE ?';
@@ -30,9 +32,10 @@ router.get('/', (req, res) => {
   db.get(
     `SELECT COUNT(*) as total FROM users ${whereClause}`,
     params,
-    (err, countResult) => {
+    (err: Error | null, countResult: any) => {
       if (err) {
-        return res.status(500).json({ message: 'Ошибка базы данных' });
+        res.status(500).json({ message: 'Ошибка базы данных' });
+        return;
       }
 
       // Получаем пользователей с пагинацией
@@ -41,19 +44,20 @@ router.get('/', (req, res) => {
          FROM users ${whereClause}
          ORDER BY created_at DESC
          LIMIT ? OFFSET ?`,
-        [...params, limit, offset],
-        (err, users) => {
+        [...params, Number(limit), offset],
+        (err: Error | null, users: User[]) => {
           if (err) {
-            return res.status(500).json({ message: 'Ошибка базы данных' });
+            res.status(500).json({ message: 'Ошибка базы данных' });
+            return;
           }
 
           res.json({
             users,
             pagination: {
-              page: parseInt(page),
-              limit: parseInt(limit),
+              page: parseInt(page as string),
+              limit: parseInt(limit as string),
               total: countResult.total,
-              pages: Math.ceil(countResult.total / limit)
+              pages: Math.ceil(countResult.total / Number(limit))
             }
           });
         }
@@ -63,20 +67,22 @@ router.get('/', (req, res) => {
 });
 
 // Получить пользователя по ID
-router.get('/:id', (req, res) => {
+router.get('/:id', (req: any, res: Response) => {
   const { id } = req.params;
 
   db.get(
     `SELECT id, username, role, is_blocked, created_at, last_login
      FROM users WHERE id = ?`,
     [id],
-    (err, user) => {
+    (err: Error | null, user: User) => {
       if (err) {
-        return res.status(500).json({ message: 'Ошибка базы данных' });
+        res.status(500).json({ message: 'Ошибка базы данных' });
+        return;
       }
 
       if (!user) {
-        return res.status(404).json({ message: 'Пользователь не найден' });
+        res.status(404).json({ message: 'Пользователь не найден' });
+        return;
       }
 
       res.json(user);
@@ -85,29 +91,33 @@ router.get('/:id', (req, res) => {
 });
 
 // Создать нового пользователя
-router.post('/', async (req, res) => {
+router.post('/', async (req: any, res: Response) => {
   try {
     const { username, password, name, surname, role = 'user' } = req.body;
 
     if (!username || !password || !name || !surname) {
-      return res.status(400).json({ message: 'Логин, пароль, имя и фамилия обязательны' });
+      res.status(400).json({ message: 'Логин, пароль, имя и фамилия обязательны' });
+      return;
     }
 
     if (password.length < 6) {
-      return res.status(400).json({ message: 'Пароль должен содержать минимум 6 символов' });
+      res.status(400).json({ message: 'Пароль должен содержать минимум 6 символов' });
+      return;
     }
 
     // Проверяем, существует ли пользователь
     db.get(
       'SELECT id FROM users WHERE username = ?',
       [username],
-      async (err, existingUser) => {
+      async (err: Error | null, existingUser: any) => {
         if (err) {
-          return res.status(500).json({ message: 'Ошибка базы данных' });
+          res.status(500).json({ message: 'Ошибка базы данных' });
+          return;
         }
 
         if (existingUser) {
-          return res.status(400).json({ message: 'Пользователь с таким логином уже существует' });
+          res.status(400).json({ message: 'Пользователь с таким логином уже существует' });
+          return;
         }
 
         // Хешируем пароль
@@ -118,9 +128,10 @@ router.post('/', async (req, res) => {
         db.run(
           'INSERT INTO users (username, password_hash, name, surname, role) VALUES (?, ?, ?, ?, ?)',
           [username, password_hash, name, surname, role],
-          function(err) {
+          function(err: Error | null) {
             if (err) {
-              return res.status(500).json({ message: 'Ошибка создания пользователя' });
+              res.status(500).json({ message: 'Ошибка создания пользователя' });
+              return;
             }
 
             res.status(201).json({
@@ -141,7 +152,7 @@ router.post('/', async (req, res) => {
 });
 
 // Обновить пользователя
-router.put('/:id', async (req, res) => {
+router.put('/:id', async (req: any, res: Response) => {
   try {
     const { id } = req.params;
     const { username, name, surname, password, role, is_blocked } = req.body;
@@ -150,13 +161,15 @@ router.put('/:id', async (req, res) => {
     db.get(
       'SELECT id, username FROM users WHERE id = ?',
       [id],
-      async (err, user) => {
+      async (err: Error | null, user: any) => {
         if (err) {
-          return res.status(500).json({ message: 'Ошибка базы данных' });
+          res.status(500).json({ message: 'Ошибка базы данных' });
+          return;
         }
 
         if (!user) {
-          return res.status(404).json({ message: 'Пользователь не найден' });
+          res.status(404).json({ message: 'Пользователь не найден' });
+          return;
         }
 
         // Проверяем уникальность username, если он изменился
@@ -164,13 +177,15 @@ router.put('/:id', async (req, res) => {
           db.get(
             'SELECT id FROM users WHERE username = ? AND id != ?',
             [username, id],
-            (err, existingUser) => {
+            (err: Error | null, existingUser: any) => {
               if (err) {
-                return res.status(500).json({ message: 'Ошибка базы данных' });
+                res.status(500).json({ message: 'Ошибка базы данных' });
+                return;
               }
 
               if (existingUser) {
-                return res.status(400).json({ message: 'Пользователь с таким логином уже существует' });
+                res.status(400).json({ message: 'Пользователь с таким логином уже существует' });
+                return;
               }
 
               updateUser();
@@ -181,8 +196,8 @@ router.put('/:id', async (req, res) => {
         }
 
         async function updateUser() {
-          let updateFields = [];
-          let params = [];
+          let updateFields: string[] = [];
+          let params: any[] = [];
 
           if (username) {
             updateFields.push('username = ?');
@@ -201,7 +216,8 @@ router.put('/:id', async (req, res) => {
 
           if (password) {
             if (password.length < 6) {
-              return res.status(400).json({ message: 'Пароль должен содержать минимум 6 символов' });
+              res.status(400).json({ message: 'Пароль должен содержать минимум 6 символов' });
+              return;
             }
             const saltRounds = 10;
             const password_hash = await bcrypt.hash(password, saltRounds);
@@ -220,7 +236,8 @@ router.put('/:id', async (req, res) => {
           }
 
           if (updateFields.length === 0) {
-            return res.status(400).json({ message: 'Нет данных для обновления' });
+            res.status(400).json({ message: 'Нет данных для обновления' });
+            return;
           }
 
           params.push(id);
@@ -228,9 +245,10 @@ router.put('/:id', async (req, res) => {
           db.run(
             `UPDATE users SET ${updateFields.join(', ')} WHERE id = ?`,
             params,
-            function(err) {
+            function(err: Error | null) {
               if (err) {
-                return res.status(500).json({ message: 'Ошибка обновления пользователя' });
+                res.status(500).json({ message: 'Ошибка обновления пользователя' });
+                return;
               }
 
               res.json({
@@ -248,32 +266,36 @@ router.put('/:id', async (req, res) => {
 });
 
 // Удалить пользователя
-router.delete('/:id', (req, res) => {
+router.delete('/:id', (req: any, res: Response) => {
   const { id } = req.params;
 
   // Нельзя удалить самого себя
-  if (parseInt(id) === req.user.id) {
-    return res.status(400).json({ message: 'Нельзя удалить самого себя' });
+  if (parseInt(id) === req.user['id']) {
+    res.status(400).json({ message: 'Нельзя удалить самого себя' });
+    return;
   }
 
   db.get(
     'SELECT id FROM users WHERE id = ?',
     [id],
-    (err, user) => {
+    (err: Error | null, user: any) => {
       if (err) {
-        return res.status(500).json({ message: 'Ошибка базы данных' });
+        res.status(500).json({ message: 'Ошибка базы данных' });
+        return;
       }
 
       if (!user) {
-        return res.status(404).json({ message: 'Пользователь не найден' });
+        res.status(404).json({ message: 'Пользователь не найден' });
+        return;
       }
 
       db.run(
         'DELETE FROM users WHERE id = ?',
         [id],
-        function(err) {
+        function(err: Error | null) {
           if (err) {
-            return res.status(500).json({ message: 'Ошибка удаления пользователя' });
+            res.status(500).json({ message: 'Ошибка удаления пользователя' });
+            return;
           }
 
           res.json({
@@ -287,25 +309,28 @@ router.delete('/:id', (req, res) => {
 });
 
 // Блокировать/разблокировать пользователя
-router.patch('/:id/block', (req, res) => {
+router.patch('/:id/block', (req: any, res: Response) => {
   const { id } = req.params;
   const { is_blocked } = req.body;
 
   // Нельзя заблокировать самого себя
-  if (parseInt(id) === req.user.id) {
-    return res.status(400).json({ message: 'Нельзя заблокировать самого себя' });
+  if (parseInt(id) === req.user['id']) {
+    res.status(400).json({ message: 'Нельзя заблокировать самого себя' });
+    return;
   }
 
   db.run(
     'UPDATE users SET is_blocked = ? WHERE id = ?',
     [is_blocked ? 1 : 0, id],
-    function(err) {
+    function(err: Error | null) {
       if (err) {
-        return res.status(500).json({ message: 'Ошибка обновления статуса пользователя' });
+        res.status(500).json({ message: 'Ошибка обновления статуса пользователя' });
+        return;
       }
 
       if (this.changes === 0) {
-        return res.status(404).json({ message: 'Пользователь не найден' });
+        res.status(404).json({ message: 'Пользователь не найден' });
+        return;
       }
 
       res.json({
@@ -317,7 +342,7 @@ router.patch('/:id/block', (req, res) => {
 });
 
 // Получить активные сессии пользователя
-router.get('/:id/sessions', (req, res) => {
+router.get('/:id/sessions', (req: any, res: Response) => {
   const { id } = req.params;
 
   db.all(
@@ -327,9 +352,10 @@ router.get('/:id/sessions', (req, res) => {
      WHERE user_id = ? AND is_active = 1
      ORDER BY last_activity DESC`,
     [id],
-    (err, sessions) => {
+    (err: Error | null, sessions: any[]) => {
       if (err) {
-        return res.status(500).json({ message: 'Ошибка базы данных' });
+        res.status(500).json({ message: 'Ошибка базы данных' });
+        return;
       }
 
       res.json({ sessions });
@@ -338,19 +364,21 @@ router.get('/:id/sessions', (req, res) => {
 });
 
 // Завершить сессию устройства
-router.delete('/:id/sessions/:sessionId', (req, res) => {
+router.delete('/:id/sessions/:sessionId', (req: any, res: Response) => {
   const { id, sessionId } = req.params;
 
   db.run(
     'UPDATE user_sessions SET is_active = 0 WHERE id = ? AND user_id = ?',
     [sessionId, id],
-    function(err) {
+    function(err: Error | null) {
       if (err) {
-        return res.status(500).json({ message: 'Ошибка завершения сессии' });
+        res.status(500).json({ message: 'Ошибка завершения сессии' });
+        return;
       }
 
       if (this.changes === 0) {
-        return res.status(404).json({ message: 'Сессия не найдена' });
+        res.status(404).json({ message: 'Сессия не найдена' });
+        return;
       }
 
       res.json({
@@ -361,5 +389,4 @@ router.delete('/:id/sessions/:sessionId', (req, res) => {
   );
 });
 
-module.exports = router;
-
+export default router;

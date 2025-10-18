@@ -1,7 +1,8 @@
 // migrations/008_add_user_personal_data.js
-const sqlite3 = require("sqlite3").verbose();
-const path = require("path");
-const db = new sqlite3.Database(path.resolve(__dirname, "../db/memes.db"));
+import sqlite3 from 'sqlite3';
+import path from 'path';
+const sqlite = sqlite3.verbose();
+const db = new sqlite.Database(path.resolve(__dirname, "../../memes.db"));
 
 // / Миграция: добавление персональных данных пользователей
 db.serialize(async () => {
@@ -16,13 +17,13 @@ db.serialize(async () => {
   }
 });
 
-function run(query) {
+function run(query: string) {
   return new Promise((resolve, reject) => {
     db.run(query, (err) => {
       if (err) {
         reject("Ошибка при добавлении столбца: " + query + " " + err.message);
       } else {
-        resolve();
+        resolve(true);
       }
     });
   });

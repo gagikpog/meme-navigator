@@ -1,14 +1,16 @@
 // server/routes/auth.js - только вход в систему
-const express = require('express');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const db = require('../db/database');
+import express, { Request, Response } from 'express';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import db from '../db/database';
+import { JWTPayload } from '../types';
+
 const router = express.Router();
 require('dotenv').config();
-const SECRET = process.env.JWT_SECRET;
+const SECRET = process.env['JWT_SECRET'];
 
 // Функция для записи/обновления сессии устройства
-const updateUserSession = (userId, deviceId, req) => {
+const updateUserSession = (userId: number, deviceId: string, req: Request): Promise<number> => {
   const deviceInfo = req.get('User-Agent') || '';
   const ipAddress = req.ip || req.connection.remoteAddress || '';
   const userAgent = req.get('User-Agent') || '';
@@ -18,7 +20,7 @@ const updateUserSession = (userId, deviceId, req) => {
     db.get(
       'SELECT id FROM user_sessions WHERE user_id = ? AND device_id = ? AND is_active = 1',
       [userId, deviceId],
-      (err, existingSession) => {
+      (err: Error | null, existingSession: any) => {
         if (err) {
           console.error('Error checking existing session:', err);
           reject(err);
@@ -30,7 +32,7 @@ const updateUserSession = (userId, deviceId, req) => {
           db.run(
             'UPDATE user_sessions SET last_activity = CURRENT_TIMESTAMP WHERE id = ?',
             [existingSession.id],
-            (err) => {
+            (err: Error | null) => {
               if (err) {
                 console.error('Error updating session:', err);
                 reject(err);
@@ -45,9 +47,9 @@ const updateUserSession = (userId, deviceId, req) => {
             `INSERT INTO user_sessions (user_id, device_id, device_info, ip_address, user_agent)
             VALUES (?, ?, ?, ?, ?)`,
             [userId, deviceId, deviceInfo, ipAddress, userAgent],
-            function(err) {
+            function(err: Error | null) {
               if (err) {
-                console.error('Error creating session:', err)
+                console.error('Error creating session:', err);
                 reject(err);
                 return;
               }
@@ -61,48 +63,54 @@ const updateUserSession = (userId, deviceId, req) => {
 };
 
 // Вход в систему
-router.post('/login', async (req, res) => {
+router.post('/login', async (req: Request, res: Response) => {
   try {
     const { username, password } = req.body;
-    const { 'device-id': deviceId } = req.headers;
+    const deviceId = req.headers['device-id'] as string;
 
     if (!username || !password) {
-      return res.status(400).json({ message: 'Логин и пароль обязательны' });
+      res.status(400).json({ message: 'Логин и пароль обязательны' });
+      return;
     }
 
     if (!deviceId) {
-      return res.status(400).json({ message: 'deviceId обязателен',headers: JSON.stringify(req.headers) });
+      res.status(400).json({ message: 'deviceId обязателен', headers: JSON.stringify(req.headers) });
+      return;
     }
 
     // Ищем пользователя в базе данных
     db.get(
       'SELECT id, username, password_hash, role, is_blocked FROM users WHERE username = ?',
       [username],
-      async (err, user) => {
+      async (err: Error | null, user: any) => {
         if (err) {
-          return res.status(500).json({ message: 'Ошибка базы данных' });
+          res.status(500).json({ message: 'Ошибка базы данных' });
+          return;
         }
 
         if (!user) {
-          return res.status(401).json({ message: 'Неверный логин или пароль' });
+          res.status(401).json({ message: 'Неверный логин или пароль' });
+          return;
         }
 
         // Проверяем, не заблокирован ли пользователь
         if (user.is_blocked) {
-          return res.status(403).json({ message: 'Аккаунт заблокирован' });
+          res.status(403).json({ message: 'Аккаунт заблокирован' });
+          return;
         }
 
         // Проверяем пароль
         const valid = await bcrypt.compare(password, user.password_hash);
         if (!valid) {
-          return res.status(401).json({ message: 'Неверный логин или пароль' });
+          res.status(401).json({ message: 'Неверный логин или пароль' });
+          return;
         }
 
         // Обновляем время последнего входа
         db.run(
           'UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = ?',
           [user.id],
-          (err) => {
+          (err: Error | null) => {
             if (err) console.error('Error updating last_login:', err);
           }
         );
@@ -118,8 +126,8 @@ router.post('/login', async (req, res) => {
             username: user.username,
             role: user.role,
             deviceId: deviceId
-          },
-          SECRET,
+          } as JWTPayload,
+          SECRET!,
           { expiresIn: '90d' }
         );
 
@@ -140,26 +148,29 @@ router.post('/login', async (req, res) => {
 });
 
 // Получить информацию о текущем пользователе
-router.get('/me', (req, res) => {
+router.get('/me', (req: Request, res: Response) => {
   const token = req.header('Authorization')?.replace('Bearer ', '');
 
   if (!token) {
-    return res.status(401).json({ message: 'Токен не предоставлен' });
+    res.status(401).json({ message: 'Токен не предоставлен' });
+    return;
   }
 
   try {
-    const decoded = jwt.verify(token, SECRET);
+    const decoded = jwt.verify(token, SECRET!) as JWTPayload;
 
     db.get(
       'SELECT id, username, role, is_blocked, created_at, last_login FROM users WHERE id = ?',
       [decoded.id],
-      (err, user) => {
+      (err: Error | null, user: any) => {
         if (err) {
-          return res.status(500).json({ message: 'Ошибка базы данных' });
+          res.status(500).json({ message: 'Ошибка базы данных' });
+          return;
         }
 
         if (!user) {
-          return res.status(404).json({ message: 'Пользователь не найден' });
+          res.status(404).json({ message: 'Пользователь не найден' });
+          return;
         }
 
         res.json({
@@ -181,15 +192,16 @@ router.get('/me', (req, res) => {
 });
 
 // Получить активные сессии текущего пользователя
-router.get('/my-sessions', (req, res) => {
+router.get('/my-sessions', (req: Request, res: Response) => {
   const token = req.header('Authorization')?.replace('Bearer ', '');
 
   if (!token) {
-    return res.status(401).json({ message: 'Токен не предоставлен' });
+    res.status(401).json({ message: 'Токен не предоставлен' });
+    return;
   }
 
   try {
-    const decoded = jwt.verify(token, SECRET);
+    const decoded = jwt.verify(token, SECRET!) as JWTPayload;
 
     db.all(
       `SELECT id, device_id, device_info, ip_address, user_agent,
@@ -198,9 +210,10 @@ router.get('/my-sessions', (req, res) => {
        WHERE user_id = ? AND is_active = 1
        ORDER BY last_activity DESC`,
       [decoded.id],
-      (err, sessions) => {
+      (err: Error | null, sessions: any[]) => {
         if (err) {
-          return res.status(500).json({ message: 'Ошибка базы данных' });
+          res.status(500).json({ message: 'Ошибка базы данных' });
+          return;
         }
 
         res.json({ sessions });
@@ -212,22 +225,24 @@ router.get('/my-sessions', (req, res) => {
 });
 
 // Завершить текущую сессию
-router.post('/logout', (req, res) => {
+router.post('/logout', (req: Request, res: Response) => {
   const token = req.header('Authorization')?.replace('Bearer ', '');
 
   if (!token) {
-    return res.status(401).json({ message: 'Токен не предоставлен' });
+    res.status(401).json({ message: 'Токен не предоставлен' });
+    return;
   }
 
   try {
-    const decoded = jwt.verify(token, SECRET);
+    const decoded = jwt.verify(token, SECRET!) as JWTPayload;
 
     db.run(
       'UPDATE user_sessions SET is_active = 0 WHERE user_id = ? AND device_id = ?',
       [decoded.id, decoded.deviceId],
-      function(err) {
+      function(err: Error | null) {
         if (err) {
-          return res.status(500).json({ message: 'Ошибка завершения сессии' });
+          res.status(500).json({ message: 'Ошибка завершения сессии' });
+          return;
         }
 
         res.json({
@@ -241,4 +256,4 @@ router.post('/logout', (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;

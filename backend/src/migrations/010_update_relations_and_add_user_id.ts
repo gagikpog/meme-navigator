@@ -3,10 +3,11 @@
  * Исправлено выполнение — теперь все шаги строго последовательны.
  */
 
-const sqlite3 = require('sqlite3').verbose();
-const path = require('path');
+import sqlite3 from 'sqlite3';
+import path from 'path';
 
-const db = new sqlite3.Database(path.resolve(__dirname, '../db/memes.db'));
+const sqlite = sqlite3.verbose();
+const db = new sqlite.Database(path.resolve(__dirname, '../../memes.db'));
 
 console.log('🚀 Начинаем полную миграцию структуры БД');
 
@@ -14,7 +15,7 @@ db.serialize(() => {
   db.run('PRAGMA foreign_keys = OFF;', (err) => {
     if (err) throw err;
 
-    db.get(`SELECT id FROM users WHERE username = 'gagikpog'`, (err, admin) => {
+    db.get(`SELECT id FROM users WHERE username = 'gagikpog'`, (err, admin: {id: number}) => {
       if (err) throw err;
 
       if (!admin) {
@@ -27,7 +28,7 @@ db.serialize(() => {
   });
 });
 
-function migrateAll(adminId) {
+function migrateAll(adminId: number) {
   console.log(`👤 Администратор найден: ID=${adminId}`);
 
   migrateMemes(adminId, () => {
@@ -43,7 +44,7 @@ function migrateAll(adminId) {
   });
 }
 
-function migrateMemes(adminId, next) {
+function migrateMemes(adminId: number, next: Function) {
   console.log('➡️ Миграция таблицы memes...');
   db.run(`ALTER TABLE memes RENAME TO memes_old;`, (err) => {
     if (err) throw err;
@@ -83,7 +84,7 @@ function migrateMemes(adminId, next) {
   });
 }
 
-function migrateUserSessions(next) {
+function migrateUserSessions(next: Function) {
   console.log('➡️ Миграция таблицы user_sessions...');
   db.run(`ALTER TABLE user_sessions RENAME TO user_sessions_old;`, (err) => {
     if (err) throw err;
@@ -124,7 +125,7 @@ function migrateUserSessions(next) {
   });
 }
 
-function migrateSubscriptions(next) {
+function migrateSubscriptions(next: Function) {
   console.log('➡️ Миграция таблицы subscriptions...');
   db.run(`ALTER TABLE subscriptions RENAME TO subscriptions_old;`, (err) => {
     if (err) throw err;
