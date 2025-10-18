@@ -5,11 +5,11 @@ const sqlite = sqlite3.verbose();
 const db = new sqlite.Database(path.resolve(__dirname, '../../memes.db'));
 
 db.serialize(() => {
-  // Включаем поддержку внешних ключей
-  db.run('PRAGMA foreign_keys = ON;');
+    // Включаем поддержку внешних ключей
+    db.run('PRAGMA foreign_keys = ON;');
 
-  // Таблица пользователей
-  db.run(`
+    // Таблица пользователей
+    db.run(`
     CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       username TEXT UNIQUE NOT NULL,
@@ -24,8 +24,8 @@ db.serialize(() => {
     )
   `);
 
-  // Таблица мемов (теперь с user_id)
-  db.run(`
+    // Таблица мемов (теперь с user_id)
+    db.run(`
     CREATE TABLE IF NOT EXISTS memes (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       fileName TEXT NOT NULL,
@@ -38,8 +38,8 @@ db.serialize(() => {
     )
   `);
 
-  // Таблица сессий
-  db.run(`
+    // Таблица сессий
+    db.run(`
     CREATE TABLE IF NOT EXISTS user_sessions (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       user_id INTEGER NOT NULL,
@@ -54,18 +54,18 @@ db.serialize(() => {
     )
   `);
 
-  db.run(`
+    db.run(`
     CREATE INDEX IF NOT EXISTS idx_user_sessions_device_id
     ON user_sessions (device_id)
   `);
 
-  db.run(`
+    db.run(`
     CREATE INDEX IF NOT EXISTS idx_user_sessions_user_active
     ON user_sessions (user_id, is_active)
   `);
 
-  // Таблица подписок (теперь с внешними ключами)
-  db.run(`
+    // Таблица подписок (теперь с внешними ключами)
+    db.run(`
     CREATE TABLE IF NOT EXISTS subscriptions (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       endpoint TEXT UNIQUE,
@@ -80,4 +80,3 @@ db.serialize(() => {
 });
 
 export default db;
-

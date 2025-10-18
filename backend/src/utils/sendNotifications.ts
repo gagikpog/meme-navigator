@@ -1,8 +1,11 @@
-import db from "../db/database";
-import webpush from "web-push";
-import { NotificationData, NotificationFilter, PushSubscription } from "../types";
+import db from '../db/database';
+import webpush from 'web-push';
+import { NotificationData, NotificationFilter, PushSubscription } from '../types';
 
-function sendNotifications(data: NotificationData, filter: NotificationFilter = {}): Promise<{ message: string; results: Array<{ endpoint: string; status: string }> }> {
+function sendNotifications(
+    data: NotificationData,
+    filter: NotificationFilter = {}
+): Promise<{ message: string; results: Array<{ endpoint: string; status: string }> }> {
     return new Promise((resolve, reject) => {
         const payload = JSON.stringify(data);
 
@@ -32,8 +35,8 @@ function sendNotifications(data: NotificationData, filter: NotificationFilter = 
 
         db.all(query, params, async (err: Error | null, rows: any[]) => {
             if (err) {
-                console.error("Ошибка чтения подписок:", err);
-                return reject("Ошибка базы данных");
+                console.error('Ошибка чтения подписок:', err);
+                return reject('Ошибка базы данных');
             }
 
             const filteredRows = filterSubscriptionsSession(rows, filter);
@@ -52,23 +55,21 @@ function sendNotifications(data: NotificationData, filter: NotificationFilter = 
 
                     try {
                         await webpush.sendNotification(subscription, payload);
-                        return { endpoint: sub.endpoint, status: "ok" };
+                        return { endpoint: sub.endpoint, status: 'ok' };
                     } catch (err: any) {
-                        console.error("Ошибка Push:", err.statusCode, err, sub.endpoint);
+                        console.error('Ошибка Push:', err.statusCode, err, sub.endpoint);
 
                         // Если подписка больше неактуальна — удаляем
                         if (err.statusCode === 410 || err.statusCode === 404) {
-                            db.run("DELETE FROM subscriptions WHERE endpoint = ?", [
-                                sub.endpoint,
-                            ]);
-                            console.log("🗑 Удалена устаревшая подписка:", sub.endpoint);
+                            db.run('DELETE FROM subscriptions WHERE endpoint = ?', [sub.endpoint]);
+                            console.log('🗑 Удалена устаревшая подписка:', sub.endpoint);
                         }
-                        return { endpoint: sub.endpoint, status: "failed" };
+                        return { endpoint: sub.endpoint, status: 'failed' };
                     }
                 })
             );
 
-            resolve({ message: "Уведомления отправлены", results });
+            resolve({ message: 'Уведомления отправлены', results });
         });
     });
 }

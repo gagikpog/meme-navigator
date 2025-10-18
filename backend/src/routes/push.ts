@@ -13,8 +13,8 @@ router.post('/subscribe', (req: any, res: Response) => {
     const { sessionId, id } = req.user;
 
     if (!endpoint || !keys || !keys.p256dh || !keys.auth) {
-      res.status(400).json({ error: 'Неверный формат подписки' });
-      return;
+        res.status(400).json({ error: 'Неверный формат подписки' });
+        return;
     }
 
     const query = `
@@ -24,42 +24,44 @@ router.post('/subscribe', (req: any, res: Response) => {
     `;
 
     db.run(query, [endpoint, keys.p256dh, keys.auth, sessionId, id], (err: Error | null) => {
-      if (err) {
-        console.error('Ошибка при сохранении подписки:', err);
-        res.status(500).json({ error: 'Ошибка базы данных' });
-        return;
-      }
-      res.status(201).json({ message: 'Подписка сохранена' });
+        if (err) {
+            console.error('Ошибка при сохранении подписки:', err);
+            res.status(500).json({ error: 'Ошибка базы данных' });
+            return;
+        }
+        res.status(201).json({ message: 'Подписка сохранена' });
     });
 });
 
 // === POST /notify ===
 // Отправляем уведомления всем пользователям
 router.post('/notify', requireWriteAccess, (req: any, res: Response) => {
-  const {
-    title = 'Новое изображение!',
-    body = 'Админ добавил картинку',
-    icon = '/icons/icon_x192.png',
-    url = '/',
-    sessionIds,
-    userIds,
-    excludeUserIds,
-    excludeSessionIds,
-    permissions
-  } = req.body;
+    const {
+        title = 'Новое изображение!',
+        body = 'Админ добавил картинку',
+        icon = '/icons/icon_x192.png',
+        url = '/',
+        sessionIds,
+        userIds,
+        excludeUserIds,
+        excludeSessionIds,
+        permissions,
+    } = req.body;
 
     const payload = {
         title,
         body,
         icon,
-        url
+        url,
     };
 
-    sendNotifications(payload, { userIds, sessionIds, excludeUserIds, excludeSessionIds, permissions }).then((data) => {
-        res.json(data);
-    }).catch((error) => {
-        res.status(500).json({ error: error.message });
-    });
+    sendNotifications(payload, { userIds, sessionIds, excludeUserIds, excludeSessionIds, permissions })
+        .then((data) => {
+            res.json(data);
+        })
+        .catch((error) => {
+            res.status(500).json({ error: error.message });
+        });
 });
 
 export default router;

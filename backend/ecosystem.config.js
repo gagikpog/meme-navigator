@@ -18,17 +18,17 @@ module.exports = {
         "*.db-shm",
         "*.sqlite",
         "*.sqlite-wal",
-        "*.sqlite-shm"
+        "*.sqlite-shm",
       ],
       watch_options: {
-        followSymlinks: false
+        followSymlinks: false,
       },
       env: {
-        NODE_ENV: "development"
+        NODE_ENV: "development",
       },
       env_production: {
-        NODE_ENV: "production"
-      }
-    }
-  ]
-}
+        NODE_ENV: "production",
+      },
+    },
+  ],
+};
