@@ -27,7 +27,7 @@ const ImageWithAuth = ({ src, alt = '', className = '', style = {} }) => {
     loadImage();
   }, [src]);
 
-  return blobUrl ? <img src={blobUrl} alt={alt} className={className} style={style} /> : <div>Загрузка...</div>;
+  return blobUrl ? <img src={blobUrl} alt={alt} className={className} style={style} /> : <div style={style} className={className}></div>;
 };
 
 export default ImageWithAuth;

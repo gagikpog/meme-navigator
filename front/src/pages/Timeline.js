@@ -65,8 +65,16 @@ export default function Timeline() {
                                 className="rounded-full object-cover border-2 border-white shadow-lg border-2 border-black"
                             />
                         </Link>
+
+                        <svg width={IMAGE_SIZE} height={IMAGE_SIZE} className="absolute sm:hidden pointer-events-none" viewBox="0,0,250,250" style={{scale: 1.25}}>
+                            <g transform="rotate(-30,125,125)">
+                                <path id="textPath" fill="transparent" d="M125,10 a95,95 0 1,1 0,230" />
+                                <text><textPath href="#textPath"><tspan dy=".4em">{ formatDate(meme.created_at) }</tspan></textPath></text>
+                            </g>
+                        </svg>
+
                         <div className="bg-black flex-1 min-w-0 h-0.5 text-center w-[120px] relative">
-                            <div className="absolute left-0 w-full bottom-1 text-xs">
+                            <div className="absolute left-0 w-full bottom-1 text-xs hidden sm:inline">
                                 { formatDate(meme.created_at) }
                             </div>
                         </div>
