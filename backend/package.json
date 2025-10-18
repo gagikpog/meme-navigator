@@ -5,9 +5,8 @@
     "main": "dist/server.js",
     "scripts": {
         "build": "tsc",
-        "dev": "ts-node src/server.ts",
+        "dev": "nodemon --exec ts-node src/server.ts",
         "start": "node dist/server.js",
-        "dev:watch": "nodemon --exec ts-node src/server.ts",
         "format": "prettier --write ."
     },
     "keywords": [],
