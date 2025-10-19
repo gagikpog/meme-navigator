@@ -96,7 +96,7 @@ router.get('/', requireAdminAccess, (req: any, res: Response) => {
 // Получить свои данные
 router.get('/me', (req: any, res: Response) => {
     db.get(
-        `SELECT id, username, role, is_blocked, created_at, last_login, avatar
+        `SELECT id, username, name, surname, role, is_blocked, created_at, last_login, avatar
      FROM users WHERE id = ?`,
         [req.user.id],
         (err: Error | null, user: User) => {

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { authFetch } from '../utils/authFetch';
 const cache = new Map();
 
-const ImageWithAuth = ({ src, alt = '', className = '', style = {}, fallback }) => {
+const ImageWithAuth = ({ src, alt = '', className = '', style = {}, fallback, title }) => {
   const [blobUrl, setBlobUrl] = useState(null);
 
   const [loadError, setLoadError ]= useState(false);
@@ -39,7 +39,7 @@ const ImageWithAuth = ({ src, alt = '', className = '', style = {}, fallback }) 
     return fallback;
   }
 
-  return blobUrl ? <img src={blobUrl} alt={alt} className={className} style={style} /> : <div style={style} className={className}></div>;
+  return blobUrl ? <img src={blobUrl} alt={alt} className={className} style={style} title={title}/> : <div style={style} className={className}></div>;
 };
 
 export default ImageWithAuth;
