@@ -1,7 +1,8 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import { authFetch } from '../utils/authFetch';
 import { useAuth } from '../context/AuthContext';
 import formatDate from '../utils/formatDate';
+import AvatarDisplay from '../components/AvatarDisplay';
 
 const initialForm = { username: '', password: '', name: '', surname: '', role: 'user' };
 
@@ -35,6 +36,8 @@ const Users = () => {
   const [error, setError] = useState('');
   const [form, setForm] = useState(initialForm);
   const [showPassword, setShowPassword] = useState(false);
+  const [avatarFile, setAvatarFile] = useState(null);
+  const [avatarPreview, setAvatarPreview] = useState(null);
 
 
   const onGeneratePassword = async () => {
@@ -55,6 +58,40 @@ const Users = () => {
     } catch {}
   };
 
+  const handleAvatarChange = (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // Проверяем тип файла
+    if (!file.type.startsWith('image/')) {
+      alert('Пожалуйста, выберите изображение');
+      return;
+    }
+
+    // Проверяем размер файла (5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Размер файла не должен превышать 5MB');
+      return;
+    }
+
+    setAvatarFile(file);
+
+    // Создаем превью
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setAvatarPreview(e.target.result);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const clearAvatar = () => {
+    setAvatarFile(null);
+    setAvatarPreview(null);
+    // Очищаем input
+    const fileInput = document.getElementById('avatar-input');
+    if (fileInput) fileInput.value = '';
+  };
+
   const [editingId, setEditingId] = useState(null);
   const [sessionsModalUser, setSessionsModalUser] = useState(null);
   const [sessions, setSessions] = useState([]);
@@ -69,7 +106,7 @@ const Users = () => {
     return params.toString();
   }, [pagination.page, pagination.limit, search, role, blocked]);
 
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     try {
       setLoading(true);
       setError('');
@@ -97,22 +134,34 @@ const Users = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [queryString]);
 
   useEffect(() => {
     if (isAdmin()) fetchUsers();
-  }, [queryString]);
+  }, [queryString, fetchUsers, isAdmin]);
 
   const onCreate = async () => {
     try {
       if (!form.username || !form.password) throw new Error('Укажите логин и пароль');
+
+      const formData = new FormData();
+      formData.append('username', form.username);
+      formData.append('password', form.password);
+      formData.append('name', form.name);
+      formData.append('surname', form.surname);
+      formData.append('role', form.role);
+
+      if (avatarFile) {
+        formData.append('avatar', avatarFile);
+      }
+
       const res = await authFetch(`/api/users`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+        body: formData,
       });
       await res.json();
       setForm(initialForm);
+      clearAvatar();
       fetchUsers();
     } catch (e) {
       setError(e.message || 'Ошибка создания пользователя');
@@ -121,16 +170,28 @@ const Users = () => {
 
   const onUpdate = async (id) => {
     try {
-      const payload = { ...form };
-      if (!payload.password) delete payload.password;
+      const formData = new FormData();
+      formData.append('username', form.username);
+      formData.append('name', form.name);
+      formData.append('surname', form.surname);
+      formData.append('role', form.role);
+
+      if (form.password) {
+        formData.append('password', form.password);
+      }
+
+      if (avatarFile) {
+        formData.append('avatar', avatarFile);
+      }
+
       const res = await authFetch(`/api/users/${id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+        body: formData,
       });
       await res.json();
       setEditingId(null);
       setForm(initialForm);
+      clearAvatar();
       fetchUsers();
     } catch (e) {
       setError(e.message || 'Ошибка обновления пользователя');
@@ -193,6 +254,7 @@ const Users = () => {
     }
   };
 
+
   return (
     <div className="p-4">
       <h1 className="text-2xl font-bold mb-4">Пользователи</h1>
@@ -226,6 +288,30 @@ const Users = () => {
           <input className="border p-2 rounded" placeholder="Логин" autoComplete="off" value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} />
           <input className="border p-2 rounded" placeholder="Имя" autoComplete="off" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
           <input className="border p-2 rounded" placeholder="Фамилия" autoComplete="off" value={form.surname} onChange={(e) => setForm({ ...form, surname: e.target.value })} />
+
+          {/* Поле для загрузки аватара */}
+          <div className="flex items-center gap-2">
+            <label className="text-sm font-medium">Аватар:</label>
+            <input
+              id="avatar-input"
+              type="file"
+              accept="image/*"
+              onChange={handleAvatarChange}
+              className="border p-2 rounded text-sm"
+            />
+            {avatarPreview && (
+              <div className="flex items-center gap-2">
+                <img src={avatarPreview} alt="Превью" className="w-8 h-8 rounded-full object-cover" />
+                <button
+                  type="button"
+                  onClick={clearAvatar}
+                  className="text-red-600 hover:text-red-800 text-sm"
+                >
+                  Удалить
+                </button>
+              </div>
+            )}
+          </div>
           <div className="relative">
             <input className="border p-2 rounded pr-28" type={showPassword ? 'text' : 'password'} placeholder="Пароль" autoComplete="new-password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
             <button
@@ -281,7 +367,7 @@ const Users = () => {
           {editingId ? (
             <>
               <button className="bg-green-600 text-white px-4 py-2 rounded" onClick={() => onUpdate(editingId)}>Сохранить</button>
-              <button className="bg-gray-400 text-white px-4 py-2 rounded" onClick={() => { setEditingId(null); setForm(initialForm); }}>Отмена</button>
+              <button className="bg-gray-400 text-white px-4 py-2 rounded" onClick={() => { setEditingId(null); setForm(initialForm); clearAvatar(); }}>Отмена</button>
             </>
           ) : (
             <button className="bg-blue-600 text-white px-4 py-2 rounded" onClick={onCreate}>Добавить</button>
@@ -295,6 +381,7 @@ const Users = () => {
           <thead>
             <tr className="bg-gray-100">
               <th className="p-2 border">ID</th>
+              <th className="p-2 border">Аватар</th>
               <th className="p-2 border">Логин</th>
               <th className="p-2 border">Имя</th>
               <th className="p-2 border">Фамилия</th>
@@ -310,6 +397,9 @@ const Users = () => {
             {users.map(u => (
               <tr key={u.id} className="odd:bg-white even:bg-gray-50">
                 <td className="p-2 border">{u.id}</td>
+                <td className="p-2 border">
+                  <AvatarDisplay user={u} />
+                </td>
                 <td className="p-2 border">{u.username}</td>
                 <td className="p-2 border">{u.name}</td>
                 <td className="p-2 border">{u.surname}</td>
@@ -327,7 +417,11 @@ const Users = () => {
                     className="inline-flex items-center justify-center p-1.5 rounded hover:bg-gray-100 border"
                     title="Изменить пользователя"
                     aria-label="Изменить пользователя"
-                    onClick={() => { setEditingId(u.id); setForm({ username: u.username, password: '', name: u.name, surname: u.surname, role: u.role }); }}
+                    onClick={() => {
+                      setEditingId(u.id);
+                      setForm({ username: u.username, password: '', name: u.name, surname: u.surname, role: u.role });
+                      clearAvatar();
+                    }}
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M12 20h9"/>
@@ -372,7 +466,7 @@ const Users = () => {
             ))}
             {users.length === 0 && !loading && (
               <tr>
-                <td className="p-2 border text-center" colSpan={8}>Нет данных</td>
+                <td className="p-2 border text-center" colSpan={11}>Нет данных</td>
               </tr>
             )}
           </tbody>

@@ -2,7 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import webpush from 'web-push';
 import path from 'path';
-import { auth, requireAdminAccess, authWithoutDeviceId } from './middleware/auth';
+import { auth, authWithoutDeviceId } from './middleware/auth';
 import memeRoutes from './routes/memes';
 import pushRoutes from './routes/push';
 import rssRoutes from './routes/rss';
@@ -65,7 +65,7 @@ app.use('/meme/images', authWithoutDeviceId, (req: any, res) => {
 app.use('/meme/api/auth', authRoutes);
 app.use('/meme', authWithoutDeviceId, rssRoutes); // public RSS at /meme/rss.xml
 app.use('/meme/api/memes', auth, memeRoutes);
-app.use('/meme/api/users', auth, requireAdminAccess, userRoutes);
+app.use('/meme/api/users', auth, userRoutes);
 app.use('/meme/push', pushRoutes);
 
 // Обработка 404 - маршрут не найден

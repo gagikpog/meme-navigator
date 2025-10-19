@@ -1,12 +1,43 @@
 import express, { Response } from 'express';
 import bcrypt from 'bcryptjs';
+import multer from 'multer';
+import path from 'path';
 import db from '../db/database';
-import { User } from '../types';
+import { AuthenticatedRequest, User } from '../types';
+import { deleteImage } from '../utils/fileManager';
+import { requireAdminAccess } from '../middleware/auth';
 
 const router = express.Router();
 
+// Конфигурация multer для загрузки аватаров
+const avatarStorage = multer.diskStorage({
+    destination: (_req, _file, cb) => cb(null, 'public/images'),
+    filename: (_req, file, cb) => {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+        cb(null, 'avatar-' + uniqueSuffix + path.extname(file.originalname));
+    },
+});
+
+const avatarUpload = multer({
+    storage: avatarStorage,
+    limits: {
+        fileSize: 5 * 1024 * 1024, // 5MB
+    },
+    fileFilter: (_req, file, cb) => {
+        const allowedTypes = /jpeg|jpg|png|gif|webp/;
+        const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+        const mimetype = allowedTypes.test(file.mimetype);
+
+        if (mimetype && extname) {
+            return cb(null, true);
+        } else {
+            cb(new Error('Только изображения разрешены для аватаров'));
+        }
+    },
+});
+
 // Получить всех пользователей (только для админов)
-router.get('/', (req: any, res: Response) => {
+router.get('/', requireAdminAccess, (req: any, res: Response) => {
     const { page = 1, limit = 10, search = '', role = '', blocked = '' } = req.query;
     const offset = (Number(page) - 1) * Number(limit);
 
@@ -37,7 +68,7 @@ router.get('/', (req: any, res: Response) => {
 
         // Получаем пользователей с пагинацией
         db.all(
-            `SELECT id, username, name, surname, role, is_blocked, created_at, last_login
+            `SELECT id, username, name, surname, role, is_blocked, created_at, last_login, avatar
          FROM users ${whereClause}
          ORDER BY created_at DESC
          LIMIT ? OFFSET ?`,
@@ -62,12 +93,33 @@ router.get('/', (req: any, res: Response) => {
     });
 });
 
-// Получить пользователя по ID
-router.get('/:id', (req: any, res: Response) => {
-    const { id } = req.params;
-
+// Получить свои данные
+router.get('/me', (req: any, res: Response) => {
     db.get(
-        `SELECT id, username, role, is_blocked, created_at, last_login
+        `SELECT id, username, role, is_blocked, created_at, last_login, avatar
+     FROM users WHERE id = ?`,
+        [req.user.id],
+        (err: Error | null, user: User) => {
+            if (err) {
+                res.status(500).json({ message: 'Ошибка базы данных' });
+                return;
+            }
+
+            if (!user) {
+                res.status(404).json({ message: 'Пользователь не найден' });
+                return;
+            }
+
+            res.json(user);
+        }
+    );
+});
+
+// Получить пользователя по ID
+router.get('/:id', requireAdminAccess, (req: any, res: Response) => {
+    const { id } = (req as AuthenticatedRequest).params;
+    db.get(
+        `SELECT id, username, role, is_blocked, created_at, last_login, avatar
      FROM users WHERE id = ?`,
         [id],
         (err: Error | null, user: User) => {
@@ -87,9 +139,10 @@ router.get('/:id', (req: any, res: Response) => {
 });
 
 // Создать нового пользователя
-router.post('/', async (req: any, res: Response) => {
+router.post('/', requireAdminAccess, avatarUpload.single('avatar'), async (req: any, res: Response) => {
     try {
         const { username, password, name, surname, role = 'user' } = req.body;
+        const avatarFile = req.file;
 
         if (!username || !password || !name || !surname) {
             res.status(400).json({ message: 'Логин, пароль, имя и фамилия обязательны' });
@@ -119,8 +172,8 @@ router.post('/', async (req: any, res: Response) => {
 
             // Создаем пользователя
             db.run(
-                'INSERT INTO users (username, password_hash, name, surname, role) VALUES (?, ?, ?, ?, ?)',
-                [username, password_hash, name, surname, role],
+                'INSERT INTO users (username, password_hash, name, surname, role, avatar) VALUES (?, ?, ?, ?, ?, ?)',
+                [username, password_hash, name, surname, role, avatarFile?.filename || null],
                 function (err: Error | null) {
                     if (err) {
                         res.status(500).json({ message: 'Ошибка создания пользователя' });
@@ -144,13 +197,14 @@ router.post('/', async (req: any, res: Response) => {
 });
 
 // Обновить пользователя
-router.put('/:id', async (req: any, res: Response) => {
+router.put('/:id', requireAdminAccess, avatarUpload.single('avatar'), async (req: any, res: Response) => {
     try {
         const { id } = req.params;
         const { username, name, surname, password, role, is_blocked } = req.body;
+        const avatarFile = req.file;
 
         // Проверяем, существует ли пользователь
-        db.get('SELECT id, username FROM users WHERE id = ?', [id], async (err: Error | null, user: any) => {
+        db.get('SELECT id, username, avatar FROM users WHERE id = ?', [id], async (err: Error | null, user: any) => {
             if (err) {
                 res.status(500).json({ message: 'Ошибка базы данных' });
                 return;
@@ -224,6 +278,16 @@ router.put('/:id', async (req: any, res: Response) => {
                     params.push(is_blocked ? 1 : 0);
                 }
 
+                // Если загружен новый аватар
+                if (avatarFile) {
+                    // Удаляем старый аватар, если он существует
+                    if (user.avatar) {
+                        deleteImage(user.avatar);
+                    }
+                    updateFields.push('avatar = ?');
+                    params.push(avatarFile.filename);
+                }
+
                 if (updateFields.length === 0) {
                     res.status(400).json({ message: 'Нет данных для обновления' });
                     return;
@@ -254,7 +318,7 @@ router.put('/:id', async (req: any, res: Response) => {
 });
 
 // Удалить пользователя
-router.delete('/:id', (req: any, res: Response) => {
+router.delete('/:id', requireAdminAccess, (req: any, res: Response) => {
     const { id } = req.params;
 
     // Нельзя удалить самого себя
@@ -289,7 +353,7 @@ router.delete('/:id', (req: any, res: Response) => {
 });
 
 // Блокировать/разблокировать пользователя
-router.patch('/:id/block', (req: any, res: Response) => {
+router.patch('/:id/block', requireAdminAccess, (req: any, res: Response) => {
     const { id } = req.params;
     const { is_blocked } = req.body;
 
@@ -318,7 +382,7 @@ router.patch('/:id/block', (req: any, res: Response) => {
 });
 
 // Получить активные сессии пользователя
-router.get('/:id/sessions', (req: any, res: Response) => {
+router.get('/:id/sessions', requireAdminAccess, (req: any, res: Response) => {
     const { id } = req.params;
 
     db.all(
@@ -340,7 +404,7 @@ router.get('/:id/sessions', (req: any, res: Response) => {
 });
 
 // Завершить сессию устройства
-router.delete('/:id/sessions/:sessionId', (req: any, res: Response) => {
+router.delete('/:id/sessions/:sessionId', requireAdminAccess, (req: any, res: Response) => {
     const { id, sessionId } = req.params;
 
     db.run(
