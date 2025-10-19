@@ -12,7 +12,7 @@ export const authFetch = (url, options = {}) => {
     },
   }).then(async (response) => {
 
-    if (response.status === 401 || response.status === 403) {
+    if (response.status === 401) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       document.location.href = '/login/';

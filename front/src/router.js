@@ -17,7 +17,7 @@ const router = [
     },
     {
         path: '/meme/new',
-        element: <ProtectedRoute requireEdit={true}><MemeCreate /></ProtectedRoute>
+        element: <ProtectedRoute requireCreateMeme={true}><MemeCreate /></ProtectedRoute>
     },
     {
         path: '/meme/:fileName',

@@ -47,24 +47,38 @@ export const AuthProvider = ({ children }) => {
     return user?.role === 'admin';
   };
 
+  const isModerator = () => {
+    return user?.role === 'moderator';
+  };
+
   const isWriter = () => {
     return user?.role === 'writer';
   };
 
-  const isUser = () => {
-    return user?.role === 'user';
+  const hasModeratorAccess = () => {
+    return isAdmin() || isModerator();
+  }
+
+  const canFilter = () => {
+    return isAdmin() || isModerator();
   };
 
-  const canCreate = () => {
-    return isAdmin() || isWriter();
+  const canCreateMeme = () => {
+    return isAdmin() || isModerator() || isWriter();
   };
 
-  const canEdit = () => {
-    return isAdmin() || isWriter();
+  const canEditMeme = (meme) => {
+    if (isAdmin() || isModerator()) {
+      return true;
+    }
+    return isWriter() && user.id === meme.user_id;
   };
 
-  const canDelete = () => {
-    return isAdmin() || isWriter();
+  const canDeleteMeme = (meme) => {
+     if (isAdmin() || isModerator()) {
+      return true;
+    }
+    return isWriter() && user.id === meme.user_id && meme.permissions === 'moderate';
   };
 
   return (
@@ -75,11 +89,11 @@ export const AuthProvider = ({ children }) => {
         login,
         logout,
         isAdmin,
-        isWriter,
-        isUser,
-        canCreate,
-        canEdit,
-        canDelete
+        hasModeratorAccess,
+        canFilter,
+        canCreateMeme,
+        canEditMeme,
+        canDeleteMeme
       }}
     >
       {children}

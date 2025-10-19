@@ -1,7 +1,7 @@
 import express, { Response } from 'express';
 import db from '../db/database';
 import sendNotifications from '../utils/sendNotifications';
-import { requireWriteAccess } from '../middleware/auth';
+import { requireModeratorAccess } from '../middleware/auth';
 
 const router = express.Router();
 
@@ -35,7 +35,7 @@ router.post('/subscribe', (req: any, res: Response) => {
 
 // === POST /notify ===
 // Отправляем уведомления всем пользователям
-router.post('/notify', requireWriteAccess, (req: any, res: Response) => {
+router.post('/notify', requireModeratorAccess, (req: any, res: Response) => {
     const {
         title = 'Новое изображение!',
         body = 'Админ добавил картинку',

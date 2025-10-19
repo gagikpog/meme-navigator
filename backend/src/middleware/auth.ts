@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken';
 import { Request, Response, NextFunction } from 'express';
 import db from '../db/database';
-import { JWTPayload } from '../types';
+import { JWTPayload, User } from '../types';
 
 require('dotenv').config();
 const SECRET = process.env['JWT_SECRET'];
@@ -46,7 +46,7 @@ const baseAuth = (req: Request, res: Response, next: NextFunction): void => {
 
     try {
         // Проверяем, не заблокирован ли пользователь
-        db.get('SELECT is_blocked FROM users WHERE id = ?', [user.id], (err: Error | null, userResult: any) => {
+        db.get('SELECT is_blocked, role FROM users WHERE id = ?', [user.id], (err: Error | null, userResult: Partial<User>) => {
             if (err) {
                 console.error('Database error during user status check:', err);
                 res.status(500).json({ message: 'Ошибка проверки статуса пользователя' });
@@ -88,13 +88,13 @@ const baseAuth = (req: Request, res: Response, next: NextFunction): void => {
                         return;
                     }
 
-                    (req as any).user = user;
+                    (req as any).user = {...user, ...userResult};
                     next();
                 }
             );
         });
     } catch {
-        res.status(403).json({ message: 'Неверный токен' });
+        res.status(401).json({ message: 'Неверный токен' });
     }
 };
 
@@ -133,7 +133,7 @@ const authWithoutDeviceId = (req: Request, res: Response, next: NextFunction): v
 // Middleware для проверки прав на чтение (пользователь или админ)
 const requireReadAccess = (req: Request, res: Response, next: NextFunction): void => {
     const user = (req as any).user as JWTPayload;
-    if (user.role === 'admin' || user.role === 'writer' || user.role === 'user') {
+    if (user.role === 'admin' || user.role === 'writer' || user.role === 'moderator' || user.role === 'user') {
         next();
     } else {
         res.status(403).json({ message: 'Недостаточно прав для доступа' });
@@ -141,9 +141,19 @@ const requireReadAccess = (req: Request, res: Response, next: NextFunction): voi
 };
 
 // Middleware для операций записи (только админы)
+const requireModeratorAccess = (req: Request, res: Response, next: NextFunction): void => {
+    const user = (req as any).user as JWTPayload;
+    if (user.role === 'admin' || user.role === 'moderator') {
+        next();
+    } else {
+        res.status(403).json({ message: 'Требуются права на редактирование для выполнения этой операции' });
+    }
+};
+
+// Middleware для операций записи (только админы)
 const requireWriteAccess = (req: Request, res: Response, next: NextFunction): void => {
     const user = (req as any).user as JWTPayload;
-    if (user.role === 'admin' || user.role === 'writer') {
+    if (user.role === 'admin' || user.role === 'moderator' || user.role === 'writer') {
         next();
     } else {
         res.status(403).json({ message: 'Требуются права на редактирование для выполнения этой операции' });
@@ -160,4 +170,4 @@ const requireAdminAccess = (req: Request, res: Response, next: NextFunction): vo
     }
 };
 
-export { auth, authWithoutDeviceId, requireReadAccess, requireWriteAccess, requireAdminAccess };
+export { auth, authWithoutDeviceId, requireReadAccess, requireModeratorAccess, requireWriteAccess, requireAdminAccess };

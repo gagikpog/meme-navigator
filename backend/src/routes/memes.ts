@@ -4,7 +4,7 @@ import db from '../db/database';
 import { requireReadAccess, requireWriteAccess } from '../middleware/auth';
 import sendNotifications from '../utils/sendNotifications';
 import { deleteImage } from '../utils/fileManager';
-import { Meme } from '../types';
+import { AuthenticatedRequest, Meme, TPermissions } from '../types';
 
 const router = express.Router();
 
@@ -26,10 +26,14 @@ router.get('/', requireReadAccess, (req: any, res: Response) => {
     // Админы видят все мемы
     let query = 'SELECT * FROM memes WHERE permissions = ?';
     let params: any[] = ['public'];
+    const { user } = req as AuthenticatedRequest
 
-    if (req.user.role === 'admin' || req.user.role === 'writer') {
+    if (user.role === 'admin' || user.role === 'moderator') {
         query = 'SELECT * FROM memes';
         params = [];
+    } else if (user.role === 'writer') {
+        query += ' OR user_id = ?';
+        params.push(user.id);
     }
 
     query += ' ORDER BY created_at DESC';
@@ -56,6 +60,9 @@ router.get('/', requireReadAccess, (req: any, res: Response) => {
 
 // GET one meme - доступно всем аутентифицированным пользователям
 router.get('/:id', requireReadAccess, (req: any, res: Response) => {
+
+    const { user } = req as AuthenticatedRequest;
+
     db.get('SELECT * FROM memes WHERE id = ?', [req.params['id']], (err: Error | null, row: Meme) => {
         if (err) {
             res.status(500).json({ error: err.message });
@@ -66,24 +73,29 @@ router.get('/:id', requireReadAccess, (req: any, res: Response) => {
             return;
         }
 
+        const isSelfRecord = row.user_id === user.id
+        const hasViewRight = user.role === 'admin' || user.role === 'moderator' || row.permissions === 'public';
+
         // Проверяем права доступа
-        if (req.user.role !== 'admin' && req.user.role !== 'writer' && row.permissions === 'private') {
-            res.status(403).json({ error: 'Недостаточно прав для доступа к этому мему' });
+        if (hasViewRight || isSelfRecord) {
+            try {
+                (row as any).tags = row.tags ? JSON.parse(row.tags) : [];
+            } catch {
+                (row as any).tags = [];
+            }
+            res.json(row);
             return;
         }
 
-        try {
-            (row as any).tags = row.tags ? JSON.parse(row.tags) : [];
-        } catch {
-            (row as any).tags = [];
-        }
-        res.json(row);
+        res.status(403).json({ error: 'Недостаточно прав для доступа к этому мему' });
+        return;
     });
 });
 
-// CREATE meme - только для администраторов
 router.post('/', requireWriteAccess, upload.single('image'), (req: any, res: Response) => {
-    const { tags, description, permissions = 'public' } = req.body;
+    const { tags, description } = req.body;
+    let { permissions = 'public' }: { permissions:TPermissions } = req.body;
+    const { user } = req as AuthenticatedRequest;
     const fileName = req.file?.filename;
 
     if (!fileName) {
@@ -102,17 +114,21 @@ router.post('/', requireWriteAccess, upload.single('image'), (req: any, res: Res
         tagArray = tags;
     }
 
-    // Админы могут создавать мемы с любыми правами (public, private)
-    const allowedPermissions = ['public', 'private'];
+    const allowedPermissions: TPermissions[] = ['public', 'private', 'moderate'];
+
+    // публикация редактора сначала должна пройти модерацию
+    if (user.role === 'writer') {
+        permissions = 'moderate';
+    }
 
     if (!allowedPermissions.includes(permissions)) {
-        res.status(400).json({ error: 'Недопустимое значение permissions. Разрешены: public, private' });
+        res.status(400).json({ error: 'Недопустимое значение permissions. Разрешены: public, private, moderate' });
         return;
     }
 
     db.run(
         'INSERT INTO memes (fileName, tags, description, permissions, user_id) VALUES (?, ?, ?, ?, ?)',
-        [fileName, JSON.stringify(tagArray), description || '', permissions, req.user['id']],
+        [fileName, JSON.stringify(tagArray), description || '', permissions, user.id],
         function (err: Error | null) {
             if (err) {
                 res.status(500).json({ error: err.message });
@@ -128,7 +144,7 @@ router.post('/', requireWriteAccess, upload.single('image'), (req: any, res: Res
                 },
                 {
                     permissions: permissions === 'public' ? [] : ['admin', 'writer'],
-                    excludeUserIds: [req.user['id']],
+                    excludeUserIds: [user.id],
                 }
             );
 
@@ -143,9 +159,10 @@ router.post('/', requireWriteAccess, upload.single('image'), (req: any, res: Res
     );
 });
 
-// UPDATE meme - только для администраторов
 router.put('/:id', requireWriteAccess, (req: any, res: Response) => {
-    const { tags: updateTags, description, permissions } = req.body;
+    const { tags: updateTags, description } = req.body;
+    let { permissions }: { permissions: TPermissions } = req.body;
+    const { user } = req as AuthenticatedRequest;
     let tagArrayStr = '[]';
     if (typeof updateTags === 'string') {
         try {
@@ -169,12 +186,21 @@ router.put('/:id', requireWriteAccess, (req: any, res: Response) => {
             return;
         }
 
+        if (user.role === 'writer' && meme.user_id !== user.id) {
+            res.status(403).json({ error: 'У вас нет прав на редактирование этого мема!' });
+            return;
+        }
+
         // Если пытаются изменить права доступа
         if (permissions) {
-            const allowedPermissions = ['public', 'private'];
+            const allowedPermissions: TPermissions[] = ['public', 'private', 'moderate'];
+
+            if (user.role === 'writer') {
+                permissions = 'moderate';
+            }
 
             if (!allowedPermissions.includes(permissions)) {
-                res.status(400).json({ error: 'Недопустимое значение permissions. Разрешены: public, private' });
+                res.status(400).json({ error: 'Недопустимое значение permissions. Разрешены: public, private, moderate' });
                 return;
             }
         }
@@ -207,7 +233,7 @@ router.put('/:id', requireWriteAccess, (req: any, res: Response) => {
                         icon: '/icons/icon_x192.png',
                         url: `/meme/${meme.fileName}`,
                     },
-                    { permissions: ['user'], excludeUserIds: [req.user['id']] }
+                    { permissions: ['user'], excludeUserIds: [user.id] }
                 );
             }
 
@@ -218,6 +244,8 @@ router.put('/:id', requireWriteAccess, (req: any, res: Response) => {
 
 // DELETE meme - только для администраторов
 router.delete('/:id', requireWriteAccess, (req: any, res: Response) => {
+    const { user } = req as AuthenticatedRequest;
+
     // Сначала проверяем, существует ли мем
     db.get('SELECT * FROM memes WHERE id = ?', [req.params['id']], (err: Error | null, meme: Meme) => {
         if (err) {
@@ -227,6 +255,16 @@ router.delete('/:id', requireWriteAccess, (req: any, res: Response) => {
         if (!meme) {
             res.status(404).json({ error: 'Meme not found' });
             return;
+        }
+
+        if (user.role === 'moderator') {
+            if (meme.user_id !== user.id) {
+                res.status(403).json({ error: 'У вас нет прав на удаление этого мема' });
+                return;
+            } else if (meme.permissions === 'public') {
+                res.status(403).json({ error: 'Вы не можете удалить опубликованный мем' });
+                return;
+            }
         }
 
         db.run('DELETE FROM memes WHERE id = ?', [req.params['id']], function (err: Error | null) {

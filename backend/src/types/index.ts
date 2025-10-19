@@ -1,11 +1,14 @@
 import { Request } from 'express';
 
+export type TRules = 'admin' | 'moderator' | 'writer' | 'user';
+export type TPermissions = 'public' | 'moderate' | 'private';
+
 // Database types
 export interface User {
     id: number;
     username: string;
     password_hash: string;
-    role: 'admin' | 'writer' | 'user';
+    role: TRules;
     created_at: string;
     is_blocked: number;
     last_login?: string;
@@ -19,7 +22,7 @@ export interface Meme {
     fileName: string;
     tags: string;
     description?: string;
-    permissions: 'public' | 'private';
+    permissions: TPermissions;
     created_at: string;
     user_id: number;
 }
@@ -50,7 +53,7 @@ export interface JWTPayload {
     id: number;
     sessionId: number;
     username: string;
-    role: 'admin' | 'writer' | 'user';
+    role: TRules;
     deviceId: string;
 }
 

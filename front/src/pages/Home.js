@@ -12,19 +12,19 @@ import formatDate from '../utils/formatDate';
 const Home = () => {
   const { memes, loading } = useMemes();
   const [search, setSearch] = useSearch();
-  const { canCreate } = useAuth();
+  const { canFilter, canCreateMeme } = useAuth();
   const [permFilter, setPermFilter] = usePermFilter();
 
-  const canCreateFlag = canCreate();
+  const canFilterFlag = canFilter();
 
   const filteredImages = useMemo(() => {
     const permissionFiltered = (() => {
-      if (!canCreateFlag) return memes;
+      if (!canFilterFlag) return memes;
       if (permFilter === 'all') return memes;
       return memes.filter((m) => m.permissions === permFilter);
     })();
     return permissionFiltered.filter((img) => compareText(img.tags, search));
-  }, [memes, permFilter, canCreateFlag, search]);
+  }, [memes, permFilter, canFilterFlag, search]);
 
   // Top 10 popular tags
   const topTags = useMemo(() => {
@@ -109,7 +109,7 @@ const Home = () => {
           )}
         </div>
 
-        {canCreate() && (
+        {canFilter() && (
           <div className="mb-2 flex items-center gap-2">
             <span className="text-xs text-gray-500">Статус:</span>
             <div className="inline-flex rounded-full border bg-white p-0.5 text-xs shadow-sm">
@@ -158,7 +158,7 @@ const Home = () => {
                 ) : (
                   <div className="h-5" />
                 )}
-                {canCreateFlag && (
+                {canFilterFlag && (
                   <>
                     {img.permissions === 'public' && (
                       <span className="shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-green-50 text-green-600 border border-green-200" title="Публичный мем">
@@ -184,7 +184,7 @@ const Home = () => {
         ))}
       </div>
 
-      {canCreate() && (
+      {canCreateMeme() && (
         <Link
           to="/meme/new"
           className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-blue-600 text-white shadow-lg hover:bg-blue-700 active:bg-blue-800 flex items-center justify-center"

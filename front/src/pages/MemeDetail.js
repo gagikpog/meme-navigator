@@ -11,7 +11,7 @@ const MemeDetail = () => {
   const { memes, refreshMemes } = useMemes();
   const { fileName } = useParams();
   const navigate = useNavigate();
-  const { canEdit, canDelete } = useAuth();
+  const { canEditMeme, canDeleteMeme, hasModeratorAccess } = useAuth();
 
   const currentMemeIndex = useMemo(() => {
     return memes.findIndex(m => m.fileName === fileName);
@@ -42,9 +42,10 @@ const MemeDetail = () => {
 
   if (!meme) return <div>Мем не найден</div>;
 
-  const handleSave = async () => {
-    if (!canEdit()) return;
 
+  const hasEditRight = canEditMeme(meme);
+
+  const handleSave = async () => {
     setIsSaving(true);
     const tagArray = tags.split(',').map((t) => t.trim()).filter(Boolean);
     const res = await authFetch(`/api/memes/${meme.id}`, {
@@ -57,8 +58,6 @@ const MemeDetail = () => {
   };
 
   const handleDelete = async () => {
-    if (!canDelete()) return;
-
     const confirmed = window.confirm('Удалить мем?');
     if (!confirmed) return;
 
@@ -125,9 +124,9 @@ const MemeDetail = () => {
             onChange={(e) => setTags(e.target.value)}
             placeholder="теги через запятую"
             className="border rounded w-full p-2 mb-4"
-            disabled={!canEdit()}
+            disabled={!hasEditRight}
           />
-          {canEdit() ? (
+          {hasEditRight ? (
             <div className="mt-4 mb-4">
               <label className="block">Описание:</label>
               <textarea
@@ -135,7 +134,7 @@ const MemeDetail = () => {
                 onChange={(e) => setDescription(e.target.value)}
                 className="w-full p-2 rounded bg-gray-100"
                 rows="10"
-                disabled={!canEdit()}
+                disabled={!hasEditRight}
               />
             </div>
           ) : (
@@ -149,7 +148,7 @@ const MemeDetail = () => {
             )
           )}
 
-          {canEdit() && (
+          {hasModeratorAccess() && (
             <div className="mt-4 mb-4">
               <label className="flex items-center gap-2 text-sm font-medium text-gray-700 cursor-pointer">
                 <input
@@ -157,7 +156,7 @@ const MemeDetail = () => {
                   checked={permissions === 'public'}
                   onChange={(e) => setPermissions(e.target.checked ? 'public' : 'private')}
                   className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                  disabled={!canEdit()}
+                  disabled={!hasEditRight}
                 />
                 {permissions === 'public' ? (
                   <span className="text-green-600">🌐</span>
@@ -173,7 +172,7 @@ const MemeDetail = () => {
           )}
 
           <div className="flex gap-4">
-            {canEdit() && (
+            {hasEditRight && (
               <button
                 onClick={handleSave}
                 disabled={isSaving}
@@ -182,7 +181,7 @@ const MemeDetail = () => {
                 Сохранить
               </button>
             )}
-            {canDelete() && (
+            {canDeleteMeme(meme) && (
               <button
                 onClick={handleDelete}
                 className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"

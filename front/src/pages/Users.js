@@ -264,9 +264,10 @@ const Users = () => {
         <input className="border p-2 rounded" placeholder="Поиск" value={search} onChange={(e) => setSearch(e.target.value)} />
         <select className="border p-2 rounded" value={role} onChange={(e) => setRole(e.target.value)}>
           <option value="">Все роли</option>
-          <option value="admin">admin</option>
-          <option value="writer">writer</option>
-          <option value="user">user</option>
+          <option value="admin">Администратор</option>
+          <option value="moderator">Модератор</option>
+          <option value="writer">Редактор</option>
+          <option value="user">Пользователь</option>
         </select>
         <select className="border p-2 rounded" value={blocked} onChange={(e) => setBlocked(e.target.value)}>
           <option value="">Все</option>
@@ -360,9 +361,10 @@ const Users = () => {
             </button>
           </div>
           <select className="border p-2 rounded" value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })}>
-            <option value="user">user</option>
-            <option value="writer">writer</option>
-            <option value="admin">admin</option>
+            <option value="admin">Администратор</option>
+            <option value="moderator">Модератор</option>
+            <option value="writer">Редактор</option>
+            <option value="user">Пользователь</option>
           </select>
           {editingId ? (
             <>
