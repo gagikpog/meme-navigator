@@ -15,8 +15,8 @@ const AvatarDisplay = ({ user, onClick, className }) => {
             title={title}
             fallback={ (
                 <div className={`w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-gray-600 text-xs`} title={title}>
-                    {user.name.charAt(0).toUpperCase()}
-                    {user.surname.charAt(0).toUpperCase()}
+                    {user.name?.charAt(0).toUpperCase()}
+                    {user.surname?.charAt(0).toUpperCase()}
                 </div>
             )}
         />

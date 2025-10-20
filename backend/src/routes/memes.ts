@@ -22,18 +22,25 @@ const upload = multer({
 
 // GET all memes - доступно всем аутентифицированным пользователям
 router.get('/', requireReadAccess, (req: any, res: Response) => {
-    // Пользователи видят только публичные мемы
     // Админы видят все мемы
-    let query = 'SELECT * FROM memes WHERE permissions = ?';
-    let params: any[] = ['public'];
+    let query = `
+        SELECT
+            memes.*, users.name AS authorName, users.surname as authorSurname, users.username as authorUsername
+        FROM memes
+        LEFT JOIN users
+            ON memes.user_id = users.id
+    `;
+    let params: any[] = [];
     const { user } = req as AuthenticatedRequest
 
-    if (user.role === 'admin' || user.role === 'moderator') {
-        query = 'SELECT * FROM memes';
-        params = [];
+    if (user.role === 'user') {
+        // Пользователи видят только публичные мемы
+        query += 'WHERE memes.permissions = ?';
+        params.push('public');
     } else if (user.role === 'writer') {
-        query += ' OR user_id = ?';
-        params.push(user.id);
+        // Редактор видит свои и публичные мемы 
+        query += 'WHERE memes.permissions = ? OR user_id = ?';
+        params.push('public', user.id);
     }
 
     query += ' ORDER BY created_at DESC';
@@ -143,7 +150,7 @@ router.post('/', requireWriteAccess, upload.single('image'), (req: any, res: Res
                     url: `/meme/${fileName}`,
                 },
                 {
-                    permissions: permissions === 'public' ? [] : ['admin', 'writer'],
+                    permissions: permissions === 'public' ? [] : ['admin', 'moderator'],
                     excludeUserIds: [user.id],
                 }
             );
