@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useMemes } from '../context/MemeContext';
 import { authFetch } from '../utils/authFetch';
+import { useAuth } from '../context/AuthContext';
 
 const UploadForm = ({ onUpload }) => {
   const [file, setFile] = useState(null);
@@ -13,6 +14,8 @@ const UploadForm = ({ onUpload }) => {
   const [isDragOver, setIsDragOver] = useState(false);
   const pasteAreaRef = useRef(null);
   const fileInputRef = useRef(null);
+
+  const { hasModeratorAccess } = useAuth();
 
   const revokePreviewUrl = useCallback(() => {
     if (previewUrl) {
@@ -192,7 +195,11 @@ const UploadForm = ({ onUpload }) => {
 
       <div
         ref={pasteAreaRef}
-        className={`mb-3 border-2 rounded-xl p-6 min-h-[160px] flex flex-col justify-center transition-colors ${isDragOver ? 'border-blue-400 bg-blue-50' : 'border-dashed border-gray-300'}`}
+        className={`mb-3 border-2 rounded-xl p-6 min-h-[160px] flex flex-col justify-center transition-colors ${
+          isDragOver
+            ? "border-blue-400 bg-blue-50"
+            : "border-dashed border-gray-300"
+        }`}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
@@ -211,7 +218,9 @@ const UploadForm = ({ onUpload }) => {
             className="inline-flex items-center gap-2 h-10 px-4 rounded-md border border-gray-300 bg-white text-gray-800 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <span>📁</span>
-            <span className="w-40 text-left truncate">{previewUrl ? 'Заменить изображение' : 'Выбрать изображение'}</span>
+            <span className="w-40 text-left truncate">
+              {previewUrl ? "Заменить изображение" : "Выбрать изображение"}
+            </span>
           </button>
           {previewUrl && (
             <button
@@ -223,13 +232,19 @@ const UploadForm = ({ onUpload }) => {
               <span>Сбросить</span>
             </button>
           )}
-          <span className="text-xs text-gray-500">или перетащите файл сюда, либо вставьте (Ctrl/Cmd+V)</span>
+          <span className="text-xs text-gray-500">
+            или перетащите файл сюда, либо вставьте (Ctrl/Cmd+V)
+          </span>
         </div>
       </div>
 
       {previewUrl && (
         <div className="mb-3">
-          <img src={previewUrl} alt="preview" className="max-h-64 rounded border mb-2" />
+          <img
+            src={previewUrl}
+            alt="preview"
+            className="max-h-64 rounded border mb-2"
+          />
         </div>
       )}
 
@@ -248,28 +263,35 @@ const UploadForm = ({ onUpload }) => {
         className="border p-2 w-full mb-2 rounded"
         rows="3"
       />
-
-      <div className="mb-2">
-        <label className="flex items-center gap-2 text-sm font-medium text-gray-700 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={permissions === 'public'}
-            onChange={(e) => setPermissions(e.target.checked ? 'public' : 'private')}
-            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-          />
-          {permissions === 'public' ? (
-            <span className="text-green-600">🌐</span>
-          ) : (
-            <span className="text-red-600">🔒</span>
-          )}
-          Публичная
-        </label>
-        <p className="text-xs text-gray-500 mt-1">
-          {permissions === 'public' ? 'Мем будет доступен всем пользователям' : 'Мем будет доступен только администраторам'}
-        </p>
-      </div>
-
-      <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+      {hasModeratorAccess() && (
+        <div className="mb-2">
+          <label className="flex items-center gap-2 text-sm font-medium text-gray-700 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={permissions === "public"}
+              onChange={(e) =>
+                setPermissions(e.target.checked ? "public" : "private")
+              }
+              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+            />
+            {permissions === "public" ? (
+              <span className="text-green-600">🌐</span>
+            ) : (
+              <span className="text-red-600">🔒</span>
+            )}
+            Публичная
+          </label>
+          <p className="text-xs text-gray-500 mt-1">
+            {permissions === "public"
+              ? "Мем будет доступен всем пользователям"
+              : "Мем будет доступен только администраторам"}
+          </p>
+        </div>
+      )}
+      <button
+        type="submit"
+        className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+      >
         Загрузить
       </button>
 
