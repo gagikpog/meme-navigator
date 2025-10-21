@@ -3,11 +3,11 @@ import { useSearchParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 const itemsData = new Map([
-  ["all", { className: "bg-gray-900", text: "Все" }],
-  ["public", { className: "bg-green-600", text: "Публичные" }],
-  ["private", { className: "bg-red-600", text: "Приватные" }],
-  ["self", { className: "bg-blue-600", text: "Мои" }],
-  ["moderate", { className: "bg-yellow-600", text: "Модерация" }],
+  ["all", { className: "bg-gray-900", text: "Все", textShort: 'Все' }],
+  ["public", { className: "bg-green-600", text: "Публичные", textShort: 'Публ.' }],
+  ["private", { className: "bg-red-600", text: "Приватные", textShort: 'Прив.' }],
+  ["self", { className: "bg-blue-600", text: "Мои", textShort: 'Мои' }],
+  ["moderate", { className: "bg-yellow-600", text: "Модерация", textShort: 'Модер.' }],
 ]);
 
 function ItemRender({changePerm, item, value}) {
@@ -21,7 +21,8 @@ function ItemRender({changePerm, item, value}) {
         : "text-gray-700 hover:bg-gray-100"
     }`}
   >
-    {currentItem.text}
+    <span className="hidden sm:inline">{currentItem.text}</span>
+    <span className="sm:hidden">{currentItem.textShort}</span>
   </button>
   );
 }
