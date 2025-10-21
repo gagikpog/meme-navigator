@@ -12,19 +12,30 @@ import formatDate from '../utils/formatDate';
 const Home = () => {
   const { memes, loading } = useMemes();
   const [search, setSearch] = useSearch();
-  const { canFilter, canCreateMeme } = useAuth();
-  const [permFilter, setPermFilter] = usePermFilter();
+  const { user, canFilter, canCreateMeme } = useAuth();
+  const [filterContent, permFilter] = usePermFilter();
 
   const canFilterFlag = canFilter();
 
   const filteredImages = useMemo(() => {
     const permissionFiltered = (() => {
       if (!canFilterFlag) return memes;
-      if (permFilter === 'all') return memes;
-      return memes.filter((m) => m.permissions === permFilter);
+
+      switch (permFilter) {
+        case 'all':
+          return memes;
+        case 'public':
+        case 'private':
+        case 'moderate':
+          return memes.filter((m) => m.permissions === permFilter);
+        case 'self':
+          return memes.filter((meme) => meme.user_id === user.id);
+        default:
+          return memes;
+      }
     })();
     return permissionFiltered.filter((img) => compareText(img.tags, search));
-  }, [memes, permFilter, canFilterFlag, search]);
+  }, [memes, permFilter, canFilterFlag, search, user]);
 
   // Top 10 popular tags
   const topTags = useMemo(() => {
@@ -109,28 +120,7 @@ const Home = () => {
           )}
         </div>
 
-        {canFilter() && (
-          <div className="mb-2 flex items-center gap-2">
-            <span className="text-xs text-gray-500">Статус:</span>
-            <div className="inline-flex rounded-full border bg-white p-0.5 text-xs shadow-sm">
-              <button
-                type="button"
-                onClick={() => setPermFilter('all')}
-                className={`px-3 py-1 rounded-full ${permFilter === 'all' ? 'bg-gray-900 text-white' : 'text-gray-700 hover:bg-gray-100'}`}
-              >Все</button>
-              <button
-                type="button"
-                onClick={() => setPermFilter('public')}
-                className={`px-3 py-1 rounded-full ${permFilter === 'public' ? 'bg-green-600 text-white' : 'text-gray-700 hover:bg-gray-100'}`}
-              >Публичные</button>
-              <button
-                type="button"
-                onClick={() => setPermFilter('private')}
-                className={`px-3 py-1 rounded-full ${permFilter === 'private' ? 'bg-red-600 text-white' : 'text-gray-700 hover:bg-gray-100'}`}
-              >Приватные</button>
-            </div>
-          </div>
-        )}
+        {filterContent}
       </div>
 
       <div className="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-4">

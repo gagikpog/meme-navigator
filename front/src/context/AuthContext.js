@@ -60,7 +60,7 @@ export const AuthProvider = ({ children }) => {
   }
 
   const canFilter = () => {
-    return isAdmin() || isModerator();
+    return isAdmin() || isModerator() || isWriter();
   };
 
   const canCreateMeme = () => {

@@ -26,7 +26,7 @@ async function main() {
             for (let memeIndex = 0; memeIndex < row.memes.length; memeIndex++) {
                 const meme = row.memes[memeIndex];
                 if (meme) {
-                    count++
+                    count++;
                     const fileName = decodeURIComponent(meme).replace('https://meme.gagikpog.ru/meme/', '');
                     console.log(`Обновление: ${fileName}`);
                     changes += await update(row.authorId, fileName);
@@ -34,13 +34,13 @@ async function main() {
             }
         }
     }
- 
+
     console.log(`Обновлено ${changes} из ${count}`);
 }
 
 function update(authorId: number, fileName: string): Promise<number> {
     return new Promise((resolve) => {
-        db.run(`UPDATE memes SET user_id = ${authorId} WHERE fileName = '${fileName}'`, function(err) {
+        db.run(`UPDATE memes SET user_id = ${authorId} WHERE fileName = '${fileName}'`, function (err) {
             if (err) {
                 console.error('Error convert permissions data:', err.message);
             }
@@ -109,8 +109,9 @@ function getData() {
                 'https://meme.gagikpog.ru/meme/1753613424537-%C3%90%C2%B3%C3%90%C2%B0%C3%90%C2%B3%C3%90%C2%B8%C3%90%C2%BA.jpg',
                 'https://meme.gagikpog.ru/meme/1753613779049-photo_2023-09-26_10-38-16.jpg',
                 'https://meme.gagikpog.ru/meme/1753613045523-%C3%90%C2%9A%C3%90%C2%B0%C3%90%C2%BA%C3%90%C2%BE%C3%90%C2%B9%20%C3%91%C2%82%C3%91%C2%8B%20%C3%91%C2%81%C3%90%C2%B5%C3%90%C2%B3%C3%90%C2%BE%C3%90%C2%B4%C3%90%C2%BD%C3%91%C2%8F%20%C3%90%C2%93%C3%90%C2%B0%C3%90%C2%B3%C3%90%C2%B8%C3%90%C2%BA.jpg',
-            ]
-        }, {
+            ],
+        },
+        {
             authorId: 12,
             authorName: 'Лилия',
             memes: [
@@ -125,8 +126,9 @@ function getData() {
                 'https://meme.gagikpog.ru/meme/1753613015165-%C3%90%C2%BA%C3%90%C2%BE%C3%90%C2%BD%C3%90%C2%B2%C3%90%C2%B5%C3%91%C2%80%C3%91%C2%82%C3%90%C2%B0%C3%91%C2%86%C3%90%C2%B8%C3%91%C2%8F.png',
                 'https://meme.gagikpog.ru/meme/1759476528358-pasted-image.png',
                 'https://meme.gagikpog.ru/meme/1753613606804-photo_2025-07-23_12-21-31.jpg',
-            ]
-        }, {
+            ],
+        },
+        {
             authorId: 3,
             authorName: 'Никита',
             memes: [
@@ -138,30 +140,34 @@ function getData() {
                 'https://meme.gagikpog.ru/meme/1753612591778-%C3%90%C2%A1%C3%90%C2%B0%C3%90%C2%B1%C3%90%C2%B8%C3%91%C2%82%C3%90%C2%93%C3%91%C2%83%C3%90%C2%B4.png',
                 'https://meme.gagikpog.ru/meme/1753613685848-photo_2024-08-27_19-36-18.jpg',
                 'https://meme.gagikpog.ru/meme/1753613716504-photo_2024-05-13_18-01-13.jpg',
-            ]
-        }, {
+            ],
+        },
+        {
             authorId: 5,
             authorName: 'Софронов',
             memes: [
                 'https://meme.gagikpog.ru/meme/1759994866355-pasted-image.png',
                 'https://meme.gagikpog.ru/meme/1759303892456-photo_2025-10-01_12-29-16.jpg',
                 'https://meme.gagikpog.ru/meme/1758864266126-photo_2025-09-26_10-21-39.jpg',
-            ]
-        }, {
+            ],
+        },
+        {
             authorId: 7,
             authorName: 'Егорова',
             memes: [
                 'https://meme.gagikpog.ru/meme/1759304594087-%C3%90%C2%A0%C3%90%C2%B8%C3%91%C2%81%C3%91%C2%83%C3%90%C2%BD%C3%90%C2%BE%C3%90%C2%BA2.png',
                 'https://meme.gagikpog.ru/meme/1759304511675-%C3%90%C2%A0%C3%90%C2%B8%C3%91%C2%81%C3%91%C2%83%C3%90%C2%BD%C3%90%C2%BE%C3%90%C2%BA1.png',
-            ]
-        }, {
+            ],
+        },
+        {
             authorId: 4,
             authorName: 'Грамотеев',
             memes: [
                 'https://meme.gagikpog.ru/meme/1753614287656-8dee550f-1c72-46e8-84f4-9eb2237ee1eb.jpg',
                 'https://meme.gagikpog.ru/meme/1753613632036-photo_2025-04-28_13-14-50.jpg',
-            ]
-        }, {
+            ],
+        },
+        {
             authorId: 8,
             authorName: 'Наиль',
             memes: [
@@ -179,20 +185,20 @@ function getData() {
                 'https://meme.gagikpog.ru/meme/1753613772715-photo_2023-10-13_14-37-27.jpg',
                 'https://meme.gagikpog.ru/meme/1753613775868-photo_2023-10-13_14-36-40.jpg',
                 'https://meme.gagikpog.ru/meme/1753612543706-%C3%90%C2%A1%C3%90%C2%B2%C3%90%C2%BE%C3%90%C2%B9%20%C3%90%C2%91%C3%91%C2%83%C3%91%C2%82.jpg',
-            ]
-        }, {
+            ],
+        },
+        {
             authorId: 9,
             authorName: 'Антон',
             memes: [
                 'https://meme.gagikpog.ru/meme/1753613074805-%C3%90%C2%B7%C3%90%C2%B0%C3%90%C2%BF%C3%91%C2%80%C3%90%C2%B5%C3%91%C2%89%C3%90%C2%B0%C3%91%C2%8E%20%C3%91%C2%81%C3%90%C2%BE%C3%90%C2%B1%C3%90%C2%B8%C3%91%C2%80%C3%90%C2%B0%C3%91%C2%82%C3%91%C2%8C.png',
                 'https://meme.gagikpog.ru/meme/1753612709610-%C3%90%C2%9F%C3%91%C2%8F%C3%91%C2%82%C3%90%C2%B0%C3%90%C2%BA%C3%90%C2%BE%C3%90%C2%B2,%20%C3%91%C2%80%C3%90%C2%B0%C3%90%C2%B1%C3%90%C2%BE%C3%91%C2%82%C3%90%C2%B0%C3%90%C2%B9.jpeg',
-            ]
-        }, {
+            ],
+        },
+        {
             authorId: 6,
             authorName: 'Караулов',
-            memes: [
-                'https://meme.gagikpog.ru/meme/1753614082996-gyCUT_D7cEA.jpg'
-            ]
-        }
+            memes: ['https://meme.gagikpog.ru/meme/1753614082996-gyCUT_D7cEA.jpg'],
+        },
     ];
 }

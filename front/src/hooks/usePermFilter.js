@@ -1,16 +1,60 @@
-import { useCallback, useEffect, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
-const VALID = ['all', 'public', 'private'];
-const normalize = (val) => (VALID.includes(val) ? val : 'all');
+const itemsData = new Map([
+  ["all", { className: "bg-gray-900", text: "Все" }],
+  ["public", { className: "bg-green-600", text: "Публичные" }],
+  ["private", { className: "bg-red-600", text: "Приватные" }],
+  ["self", { className: "bg-blue-600", text: "Мои" }],
+  ["moderate", { className: "bg-yellow-600", text: "Модерация" }],
+]);
+
+function ItemRender({changePerm, item, value}) {
+
+  const currentItem = itemsData.get(item);
+
+  return (
+    <button type="button" onClick={() => changePerm(item)} className={`px-3 py-1 rounded-full ${
+      item === value
+        ? `${currentItem.className} text-white`
+        : "text-gray-700 hover:bg-gray-100"
+    }`}
+  >
+    {currentItem.text}
+  </button>
+  );
+}
 
 export default function usePermFilter() {
+  const { canFilter, hasModeratorAccess } = useAuth();
+
+  const validValues = useMemo(() => {
+    if (!canFilter()) {
+      return [];
+    }
+    const values = ["all"];
+
+    if (hasModeratorAccess()) {
+      values.push("public", "private");
+    }
+    values.push("self", "moderate");
+    return values;
+  }, [canFilter, hasModeratorAccess]);
+
+  const normalize = useCallback(
+    (val) => (validValues.includes(val) ? val : "all"),
+    [validValues]
+  );
+
   const [searchParams, setSearchParams] = useSearchParams();
-  const [perm, setPerm] = useState(() => normalize(searchParams.get('perm') || 'all'));
+  const [perm, setPerm] = useState(() =>
+    normalize(searchParams.get("perm") || "all")
+  );
 
   // Keep state in sync when navigation changes query
   useEffect(() => {
-    const q = normalize(searchParams.get('perm') || 'all');
+    const q = normalize(searchParams.get("perm") || "all");
     if (q !== perm) setPerm(q);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
@@ -18,17 +62,28 @@ export default function usePermFilter() {
   // Update query preserving other params
   const changePerm = useCallback(
     (value) => {
-      const next = normalize(value || 'all');
+      const next = normalize(value || "all");
       setPerm(next);
       const params = new URLSearchParams(searchParams);
-      if (next === 'all') params.delete('perm'); else params.set('perm', next);
+      if (next === "all") params.delete("perm");
+      else params.set("perm", next);
       setSearchParams(params);
     },
-    [searchParams, setSearchParams]
+    [searchParams, setSearchParams, normalize]
   );
 
-  return [perm, changePerm];
+  const content = canFilter() && (
+    <div className="mb-2 flex items-center gap-2">
+      <span className="text-xs text-gray-500">Статус:</span>
+      <div className="inline-flex rounded-full border bg-white p-0.5 text-xs shadow-sm">
+        {
+          validValues.map((item) => {
+            return <ItemRender key={item} changePerm={changePerm} item={item} value={perm} />
+          })
+        }
+      </div>
+    </div>
+  );
+
+  return [content, perm, changePerm];
 }
-
-
-

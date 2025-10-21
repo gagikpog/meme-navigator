@@ -31,14 +31,14 @@ router.get('/', requireReadAccess, (req: any, res: Response) => {
             ON memes.user_id = users.id
     `;
     let params: any[] = [];
-    const { user } = req as AuthenticatedRequest
+    const { user } = req as AuthenticatedRequest;
 
     if (user.role === 'user') {
         // Пользователи видят только публичные мемы
         query += 'WHERE memes.permissions = ?';
         params.push('public');
     } else if (user.role === 'writer') {
-        // Редактор видит свои и публичные мемы 
+        // Редактор видит свои и публичные мемы
         query += 'WHERE memes.permissions = ? OR user_id = ?';
         params.push('public', user.id);
     }
@@ -67,7 +67,6 @@ router.get('/', requireReadAccess, (req: any, res: Response) => {
 
 // GET one meme - доступно всем аутентифицированным пользователям
 router.get('/:id', requireReadAccess, (req: any, res: Response) => {
-
     const { user } = req as AuthenticatedRequest;
 
     db.get('SELECT * FROM memes WHERE id = ?', [req.params['id']], (err: Error | null, row: Meme) => {
@@ -80,7 +79,7 @@ router.get('/:id', requireReadAccess, (req: any, res: Response) => {
             return;
         }
 
-        const isSelfRecord = row.user_id === user.id
+        const isSelfRecord = row.user_id === user.id;
         const hasViewRight = user.role === 'admin' || user.role === 'moderator' || row.permissions === 'public';
 
         // Проверяем права доступа
@@ -101,7 +100,7 @@ router.get('/:id', requireReadAccess, (req: any, res: Response) => {
 
 router.post('/', requireWriteAccess, upload.single('image'), (req: any, res: Response) => {
     const { tags, description } = req.body;
-    let { permissions = 'public' }: { permissions:TPermissions } = req.body;
+    let { permissions = 'public' }: { permissions: TPermissions } = req.body;
     const { user } = req as AuthenticatedRequest;
     const fileName = req.file?.filename;
 
@@ -207,7 +206,9 @@ router.put('/:id', requireWriteAccess, (req: any, res: Response) => {
             }
 
             if (!allowedPermissions.includes(permissions)) {
-                res.status(400).json({ error: 'Недопустимое значение permissions. Разрешены: public, private, moderate' });
+                res.status(400).json({
+                    error: 'Недопустимое значение permissions. Разрешены: public, private, moderate',
+                });
                 return;
             }
         }

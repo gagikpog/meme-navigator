@@ -32,7 +32,7 @@ const initToken = (req: Request, res: Response, next: NextFunction): void => {
         (req as any).user = decoded;
         next();
     } catch {
-        res.status(403).json({ message: 'Неверный токен' });
+        res.status(401).json({ message: 'Неверный токен' });
     }
 };
 
@@ -46,53 +46,57 @@ const baseAuth = (req: Request, res: Response, next: NextFunction): void => {
 
     try {
         // Проверяем, не заблокирован ли пользователь
-        db.get('SELECT is_blocked, role FROM users WHERE id = ?', [user.id], (err: Error | null, userResult: Partial<User>) => {
-            if (err) {
-                console.error('Database error during user status check:', err);
-                res.status(500).json({ message: 'Ошибка проверки статуса пользователя' });
-                return;
-            }
-
-            if (!userResult) {
-                res.status(404).json({ message: 'Пользователь не найден' });
-                return;
-            }
-
-            if (userResult.is_blocked) {
-                res.status(403).json({ message: 'Аккаунт заблокирован' });
-                return;
-            }
-
-            // Проверяем активность сессии устройства, привязанной к токену
-            if (!user.deviceId) {
-                res.status(401).json({ message: 'Сессия недействительна: отсутствует deviceId' });
-                return;
-            }
-
-            db.get(
-                'SELECT id FROM user_sessions WHERE user_id = ? AND device_id = ? AND is_active = 1',
-                [user.id, user.deviceId],
-                (sessErr: Error | null, session: any) => {
-                    if (sessErr) {
-                        res.status(500).json({ message: 'Ошибка проверки сессии' });
-                        return;
-                    }
-
-                    if (!session) {
-                        res.status(401).json({ message: 'Сессия завершена. Выполните вход снова.' });
-                        return;
-                    }
-
-                    if (session.id !== user.sessionId) {
-                        res.status(401).json({ message: 'Сессия недействительна' });
-                        return;
-                    }
-
-                    (req as any).user = {...user, ...userResult};
-                    next();
+        db.get(
+            'SELECT is_blocked, role FROM users WHERE id = ?',
+            [user.id],
+            (err: Error | null, userResult: Partial<User>) => {
+                if (err) {
+                    console.error('Database error during user status check:', err);
+                    res.status(500).json({ message: 'Ошибка проверки статуса пользователя' });
+                    return;
                 }
-            );
-        });
+
+                if (!userResult) {
+                    res.status(404).json({ message: 'Пользователь не найден' });
+                    return;
+                }
+
+                if (userResult.is_blocked) {
+                    res.status(403).json({ message: 'Аккаунт заблокирован' });
+                    return;
+                }
+
+                // Проверяем активность сессии устройства, привязанной к токену
+                if (!user.deviceId) {
+                    res.status(401).json({ message: 'Сессия недействительна: отсутствует deviceId' });
+                    return;
+                }
+
+                db.get(
+                    'SELECT id FROM user_sessions WHERE user_id = ? AND device_id = ? AND is_active = 1',
+                    [user.id, user.deviceId],
+                    (sessErr: Error | null, session: any) => {
+                        if (sessErr) {
+                            res.status(500).json({ message: 'Ошибка проверки сессии' });
+                            return;
+                        }
+
+                        if (!session) {
+                            res.status(401).json({ message: 'Сессия завершена. Выполните вход снова.' });
+                            return;
+                        }
+
+                        if (session.id !== user.sessionId) {
+                            res.status(401).json({ message: 'Сессия недействительна' });
+                            return;
+                        }
+
+                        (req as any).user = { ...user, ...userResult };
+                        next();
+                    }
+                );
+            }
+        );
     } catch {
         res.status(401).json({ message: 'Неверный токен' });
     }
