@@ -353,12 +353,17 @@ const MemeDetail = () => {
                     className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                     disabled={!hasEditRight}
                   />
-                  {permissions === 'public' ? (
-                    <span className="text-green-600"><IconWeb size={20}/></span>
+                 {permissions === "public" ? (
+                    <>
+                      <span className="text-green-600"><IconWeb size={20}/></span>
+                      Опубликован
+                    </>
                   ) : (
-                    <span className="text-red-600"><IconPrivate size={20}/></span>
+                    <>
+                      <span className="text-red-600"><IconPrivate size={20}/></span>
+                      Не опубликован
+                    </>
                   )}
-                  Публичная
                 </label>
               )
               }

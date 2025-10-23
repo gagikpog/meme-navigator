@@ -321,11 +321,17 @@ const UploadForm = ({ onUpload }) => {
               className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
             />
             {permissions === "public" ? (
-              <span className="text-green-600"><IconWeb size={20}/></span>
+              <>
+                <span className="text-green-600"><IconWeb size={20}/></span>
+                Опубликован
+              </>
             ) : (
-              <span className="text-red-600"><IconPrivate size={20}/></span>
+              <>
+                <span className="text-red-600"><IconPrivate size={20}/></span>
+                Не опубликован
+              </>
             )}
-            Публичная
+
           </label>
           <p className="text-xs text-gray-500 mt-1">
             {permissions === "public"
