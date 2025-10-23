@@ -6,12 +6,14 @@ import { IMAGE_URL } from '../config';
 import { authFetch } from '../utils/authFetch';
 import ImageWithAuth from '../components/ImageWithAuth';
 import ImageModal from '../components/ImageModal';
+import { useDialog } from '../hooks/useDialog';
 
 const MemeDetail = () => {
   const { memes, refreshMemes } = useMemes();
   const { fileName } = useParams();
   const navigate = useNavigate();
   const { canEditMeme, canDeleteMeme, hasModeratorAccess } = useAuth();
+  const { Dialog, showModal: showDialog } = useDialog();
 
   const currentMemeIndex = useMemo(() => {
     return memes.findIndex(m => m.fileName === fileName);
@@ -28,6 +30,14 @@ const MemeDetail = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [errors, setErrors] = useState({});
 
+  // Состояние для отслеживания изменений
+  const [originalValues, setOriginalValues] = useState({
+    tags: '',
+    description: '',
+    permissions: 'private'
+  });
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+
   // Scroll to top when opening a meme or navigating between memes
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
@@ -35,11 +45,52 @@ const MemeDetail = () => {
 
   useEffect(() => {
     if (meme) {
-      setTags(meme.tags.join(', '));
-      setDescription(meme.description);
-      setPermissions(meme.permissions || 'private');
-    };
+      const initialTags = meme.tags.join(', ');
+      const initialDescription = meme.description;
+      const initialPermissions = meme.permissions || 'private';
+
+      setTags(initialTags);
+      setDescription(initialDescription);
+      setPermissions(initialPermissions);
+
+      // Сохраняем исходные значения
+      setOriginalValues({
+        tags: initialTags,
+        description: initialDescription,
+        permissions: initialPermissions
+      });
+
+      // Сбрасываем флаг изменений при загрузке нового мема
+      setHasUnsavedChanges(false);
+    }
   }, [meme]);
+
+  // Отслеживаем изменения в полях
+  useEffect(() => {
+    const hasChanges =
+      tags !== originalValues.tags ||
+      description !== originalValues.description ||
+      permissions !== originalValues.permissions;
+
+    setHasUnsavedChanges(hasChanges);
+  }, [tags, description, permissions, originalValues]);
+
+  // Предупреждение при попытке покинуть страницу с несохраненными изменениями
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      if (hasUnsavedChanges) {
+        e.preventDefault();
+        e.returnValue = 'У вас есть несохраненные изменения. Вы уверены, что хотите покинуть страницу?';
+        return e.returnValue;
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [hasUnsavedChanges]);
 
   if (!meme) return <div>Мем не найден</div>;
 
@@ -73,13 +124,47 @@ const MemeDetail = () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ tags: tagArray, description, permissions }),
     });
-    if (res.ok) await refreshMemes();
+
+    if (res.ok) {
+      await refreshMemes();
+      // Обновляем исходные значения после успешного сохранения
+      setOriginalValues({
+        tags: tags,
+        description: description,
+        permissions: permissions
+      });
+      setHasUnsavedChanges(false);
+    }
+
     setIsSaving(false);
   };
 
   const handleDelete = async () => {
-    const confirmed = window.confirm('Удалить мем?');
-    if (!confirmed) return;
+    let confirmed = false;
+
+    if (hasUnsavedChanges) {
+      confirmed = await showDialog({
+        title: 'Несохраненные изменения',
+        description: 'У вас есть несохраненные изменения. Вы уверены, что хотите удалить мем без сохранения?',
+        buttons: {
+          yes: { text: 'Удалить без сохранения', icon: '🗑️' },
+          no: { text: 'Отмена', icon: '🚫' }
+        },
+        buttonOrder: ['yes', 'no']
+      });
+    } else {
+      confirmed = await showDialog({
+        title: 'Удаление мема',
+        description: 'Вы уверены, что хотите удалить этот мем? Это действие нельзя отменить.',
+        buttons: {
+          yes: { text: 'Удалить', icon: '🗑️' },
+          no: { text: 'Отмена', icon: '🚫' }
+        },
+        buttonOrder: ['yes', 'no']
+      });
+    }
+
+    if (confirmed !== 'yes') return;
 
     const res = await authFetch(`/api/memes/${meme.id}`, {
       method: 'DELETE',
@@ -102,7 +187,25 @@ const MemeDetail = () => {
           <div className="bg-black bg-opacity-50 text-white text-sm px-2 rounded flex items-center">
             {currentMemeIndex + 1} из {memes.length}
           </div>
-          <div onClick={() => navigate(-1)} className='bg-black bg-opacity-50 text-white text-sm px-1 py-1 rounded-full z-10 cursor-pointer ml-4 pointer-events-auto'>
+          <div onClick={async (e) => {
+            if (hasUnsavedChanges) {
+              e.preventDefault();
+              const confirmed = await showDialog({
+                title: 'Несохраненные изменения',
+                description: 'У вас есть несохраненные изменения. Вы уверены, что хотите покинуть страницу?',
+                buttons: {
+                  yes: { text: 'Покинуть', icon: '🚪' },
+                  no: { text: 'Остаться', icon: '🏠' }
+                },
+                buttonOrder: ['yes', 'no']
+              });
+              if (confirmed === 'yes') {
+                navigate(-1);
+              }
+            } else {
+              navigate(-1);
+            }
+          }} className='bg-black bg-opacity-50 text-white text-sm px-1 py-1 rounded-full z-10 cursor-pointer ml-4 pointer-events-auto'>
             <svg width="25" height="25" viewBox="0 0 24 24">
               <path fill="currentColor" d="M5.29289 5.29289C5.68342 4.90237 6.31658 4.90237 6.70711 5.29289L12 10.5858L17.2929 5.29289C17.6834 4.90237 18.3166 4.90237 18.7071 5.29289C19.0976 5.68342 19.0976 6.31658 18.7071 6.70711L13.4142 12L18.7071 17.2929C19.0976 17.6834 19.0976 18.3166 18.7071 18.7071C18.3166 19.0976 17.6834 19.0976 17.2929 18.7071L12 13.4142L6.70711 18.7071C6.31658 19.0976 5.68342 19.0976 5.29289 18.7071C4.90237 18.3166 4.90237 17.6834 5.29289 17.2929L10.5858 12L5.29289 6.70711C4.90237 6.31658 4.90237 5.68342 5.29289 5.29289Z"/>
             </svg>
@@ -118,14 +221,56 @@ const MemeDetail = () => {
               alt={meme.fileName}
               className="w-full h-full object-contain"
             />
-             <Link to={`/meme/${prevMeme.fileName}`} className="text-xl font-bold text-gray-900 hover:text-blue-600 transition-colors" onClick={linkPropagation}>
+             <Link
+               to={`/meme/${prevMeme.fileName}`}
+               className="text-xl font-bold text-gray-900 hover:text-blue-600 transition-colors"
+               onClick={async (e) => {
+                 linkPropagation(e);
+                 if (hasUnsavedChanges) {
+                   e.preventDefault();
+                   const confirmed = await showDialog({
+                     title: 'Несохраненные изменения',
+                     description: 'У вас есть несохраненные изменения. Вы уверены, что хотите покинуть страницу?',
+                     buttons: {
+                       yes: { text: 'Покинуть', icon: '🚪' },
+                       no: { text: 'Остаться', icon: '🏠' }
+                     },
+                     buttonOrder: ['yes', 'no']
+                   });
+                   if (confirmed === 'yes') {
+                     navigate(`/meme/${prevMeme.fileName}`);
+                   }
+                 }
+               }}
+             >
               <div className="absolute top-50 left-0 bg-black bg-opacity-50 text-white py-1 rounded" >
                 <svg height="50px" width="50px" viewBox="0 0 34 34" fill='currentColor'>
                   <path d="M24.57,34.075c-0.505,0-1.011-0.191-1.396-0.577L8.11,18.432c-0.771-0.771-0.771-2.019,0-2.79 L23.174,0.578c0.771-0.771,2.02-0.771,2.791,0s0.771,2.02,0,2.79l-13.67,13.669l13.67,13.669c0.771,0.771,0.771,2.021,0,2.792 C25.58,33.883,25.075,34.075,24.57,34.075z"/>
                 </svg>
               </div>
             </Link>
-            <Link to={`/meme/${nextMeme.fileName}`} className="text-xl font-bold text-gray-900 hover:text-blue-600 transition-colors" onClick={linkPropagation}>
+            <Link
+              to={`/meme/${nextMeme.fileName}`}
+              className="text-xl font-bold text-gray-900 hover:text-blue-600 transition-colors"
+              onClick={async (e) => {
+                linkPropagation(e);
+                if (hasUnsavedChanges) {
+                  e.preventDefault();
+                  const confirmed = await showDialog({
+                    title: 'Несохраненные изменения',
+                    description: 'У вас есть несохраненные изменения. Вы уверены, что хотите покинуть страницу?',
+                    buttons: {
+                      yes: { text: 'Покинуть', icon: '🚪' },
+                      no: { text: 'Остаться', icon: '🏠' }
+                    },
+                    buttonOrder: ['yes', 'no']
+                  });
+                  if (confirmed === 'yes') {
+                    navigate(`/meme/${nextMeme.fileName}`);
+                  }
+                }
+              }}
+            >
               <div className="absolute top-50 right-0 bg-black bg-opacity-50 text-white py-1 rounded" >
                 <svg height="50px" width="50px" viewBox="0 0 34 34" fill='currentColor' className='rotate-180'>
                   <path d="M24.57,34.075c-0.505,0-1.011-0.191-1.396-0.577L8.11,18.432c-0.771-0.771-0.771-2.019,0-2.79 L23.174,0.578c0.771-0.771,2.02-0.771,2.791,0s0.771,2.02,0,2.79l-13.67,13.669l13.67,13.669c0.771,0.771,0.771,2.021,0,2.792 C25.58,33.883,25.075,34.075,24.57,34.075z"/>
@@ -211,9 +356,10 @@ const MemeDetail = () => {
             {hasEditRight && (
               <button
                 onClick={handleSave}
-                disabled={isSaving}
-                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
+                disabled={isSaving || !hasUnsavedChanges}
+                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2"
               >
+                <span>💾</span>
                 Сохранить
               </button>
             )}
@@ -234,6 +380,7 @@ const MemeDetail = () => {
             />
           )}
       </div>
+      <Dialog />
     </>
   );
 };
