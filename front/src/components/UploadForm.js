@@ -9,6 +9,7 @@ const UploadForm = ({ onUpload }) => {
   const [description, setDescription] = useState('');
   const [permissions, setPermissions] = useState('private');
   const [status, setStatus] = useState('');
+  const [errors, setErrors] = useState({});
   const { refreshMemes } = useMemes();
   const [previewUrl, setPreviewUrl] = useState(null);
   const [isDragOver, setIsDragOver] = useState(false);
@@ -16,6 +17,21 @@ const UploadForm = ({ onUpload }) => {
   const fileInputRef = useRef(null);
 
   const { hasModeratorAccess } = useAuth();
+
+  const validateForm = () => {
+    const newErrors = {};
+
+    if (!tags.trim()) {
+      newErrors.tags = 'Теги обязательны для заполнения';
+    }
+
+    if (!description.trim()) {
+      newErrors.description = 'Описание обязательно для заполнения';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const revokePreviewUrl = useCallback(() => {
     if (previewUrl) {
@@ -81,6 +97,12 @@ const UploadForm = ({ onUpload }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!validateForm()) {
+      setStatus('Пожалуйста, заполните все обязательные поля (теги и описание)');
+      return;
+    }
+
     if (!file) {
       setStatus('Выберите изображение');
       return;
@@ -248,21 +270,43 @@ const UploadForm = ({ onUpload }) => {
         </div>
       )}
 
-      <input
-        type="text"
-        placeholder="теги через запятую (funny, cat)"
-        value={tags}
-        onChange={(e) => setTags(e.target.value)}
-        className="border p-2 w-full mb-2 rounded"
-      />
+      <div className="mb-4">
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Теги: <span className="text-red-500">*</span>
+        </label>
+        <input
+          type="text"
+          placeholder="теги через запятую (funny, cat)"
+          value={tags}
+          onChange={(e) => {
+            setTags(e.target.value);
+            if (errors.tags) {
+              setErrors(prev => ({ ...prev, tags: '' }));
+            }
+          }}
+          className={`border rounded w-full p-2 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.tags ? 'border-red-500 bg-red-50' : 'border-gray-300 hover:border-gray-400'}`}
+        />
+        {errors.tags && <p className="text-red-500 text-sm mt-1 flex items-center gap-1 animate-fadeIn">{errors.tags}</p>}
+      </div>
 
-      <textarea
-        placeholder="Описание мема"
-        value={description}
-        onChange={(e) => setDescription(e.target.value)}
-        className="border p-2 w-full mb-2 rounded"
-        rows="3"
-      />
+      <div className="mb-4">
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Описание: <span className="text-red-500">*</span>
+        </label>
+        <textarea
+          placeholder="Описание мема"
+          value={description}
+          onChange={(e) => {
+            setDescription(e.target.value);
+            if (errors.description) {
+              setErrors(prev => ({ ...prev, description: '' }));
+            }
+          }}
+          className={`border rounded w-full p-2 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.description ? 'border-red-500 bg-red-50' : 'border-gray-300 hover:border-gray-400'}`}
+          rows="3"
+        />
+        {errors.description && <p className="text-red-500 text-sm mt-1 flex items-center gap-1 animate-fadeIn">{errors.description}</p>}
+      </div>
       {hasModeratorAccess() && (
         <div className="mb-2">
           <label className="flex items-center gap-2 text-sm font-medium text-gray-700 cursor-pointer">

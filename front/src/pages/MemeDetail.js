@@ -26,6 +26,7 @@ const MemeDetail = () => {
   const [permissions, setPermissions] = useState(meme?.permissions || 'private');
   const [showModal, setShowModal] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [errors, setErrors] = useState({});
 
   // Scroll to top when opening a meme or navigating between memes
   useEffect(() => {
@@ -45,7 +46,26 @@ const MemeDetail = () => {
 
   const hasEditRight = canEditMeme(meme);
 
+  const validateForm = () => {
+    const newErrors = {};
+
+    if (!tags.trim()) {
+      newErrors.tags = 'Теги обязательны для заполнения';
+    }
+
+    if (!description.trim()) {
+      newErrors.description = 'Описание обязательно для заполнения';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSave = async () => {
+    if (!validateForm()) {
+      return;
+    }
+
     setIsSaving(true);
     const tagArray = tags.split(',').map((t) => t.trim()).filter(Boolean);
     const res = await authFetch(`/api/memes/${meme.id}`, {
@@ -118,24 +138,40 @@ const MemeDetail = () => {
         {/* Блок редактирования внизу */}
         <div className="mt-8 border-t pt-6">
           <h2 className="text-lg font-semibold mb-2">Редактировать теги:</h2>
-          <input
-            type="text"
-            value={tags}
-            onChange={(e) => setTags(e.target.value)}
-            placeholder="теги через запятую"
-            className="border rounded w-full p-2 mb-4"
-            disabled={!hasEditRight}
-          />
+          <div className="mb-4">
+            <input
+              type="text"
+              value={tags}
+              onChange={(e) => {
+                setTags(e.target.value);
+                if (errors.tags) {
+                  setErrors(prev => ({ ...prev, tags: '' }));
+                }
+              }}
+              placeholder="теги через запятую *"
+              className={`border rounded w-full p-2 ${errors.tags ? 'border-red-500' : ''}`}
+              disabled={!hasEditRight}
+              required
+            />
+            {errors.tags && <p className="text-red-500 text-sm mt-1">{errors.tags}</p>}
+          </div>
           {hasEditRight ? (
             <div className="mt-4 mb-4">
-              <label className="block">Описание:</label>
+              <label className="block">Описание: *</label>
               <textarea
                 value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                className="w-full p-2 rounded bg-gray-100"
+                onChange={(e) => {
+                  setDescription(e.target.value);
+                  if (errors.description) {
+                    setErrors(prev => ({ ...prev, description: '' }));
+                  }
+                }}
+                className={`w-full p-2 rounded bg-gray-100 ${errors.description ? 'border-red-500' : ''}`}
                 rows="10"
                 disabled={!hasEditRight}
+                required
               />
+              {errors.description && <p className="text-red-500 text-sm mt-1">{errors.description}</p>}
             </div>
           ) : (
             description && (

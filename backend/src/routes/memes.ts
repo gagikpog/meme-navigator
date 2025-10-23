@@ -120,6 +120,17 @@ router.post('/', requireWriteAccess, upload.single('image'), (req: any, res: Res
         tagArray = tags;
     }
 
+    // Валидация обязательных полей
+    if (!tagArray || tagArray.length === 0) {
+        res.status(400).json({ error: 'Теги обязательны для заполнения' });
+        return;
+    }
+
+    if (!description || description.trim() === '') {
+        res.status(400).json({ error: 'Описание обязательно для заполнения' });
+        return;
+    }
+
     const allowedPermissions: TPermissions[] = ['public', 'private', 'moderate'];
 
     // публикация редактора сначала должна пройти модерацию
@@ -170,15 +181,31 @@ router.put('/:id', requireWriteAccess, (req: any, res: Response) => {
     let { permissions }: { permissions: TPermissions } = req.body;
     const { user } = req as AuthenticatedRequest;
     let tagArrayStr = '[]';
+    let tagArray: string[] = [];
+    
     if (typeof updateTags === 'string') {
         try {
             const parsed = JSON.parse(updateTags);
-            tagArrayStr = JSON.stringify(Array.isArray(parsed) ? parsed : []);
+            tagArray = Array.isArray(parsed) ? parsed : [];
+            tagArrayStr = JSON.stringify(tagArray);
         } catch {
+            tagArray = [];
             tagArrayStr = '[]';
         }
     } else if (Array.isArray(updateTags)) {
+        tagArray = updateTags;
         tagArrayStr = JSON.stringify(updateTags);
+    }
+
+    // Валидация обязательных полей
+    if (!tagArray || tagArray.length === 0) {
+        res.status(400).json({ error: 'Теги обязательны для заполнения' });
+        return;
+    }
+
+    if (!description || description.trim() === '') {
+        res.status(400).json({ error: 'Описание обязательно для заполнения' });
+        return;
     }
 
     // Сначала проверяем, существует ли мем
