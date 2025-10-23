@@ -239,25 +239,6 @@ Authorization: Bearer <admin_token>
 }
 ```
 
-### DELETE /meme/api/users/:id
-
-Удалить пользователя.
-
-**Заголовки:**
-
-```
-Authorization: Bearer <admin_token>
-```
-
-**Ответ:**
-
-```json
-{
-    "message": "Пользователь успешно удален",
-    "changes": 1
-}
-```
-
 ### PATCH /meme/api/users/:id/block
 
 Заблокировать или разблокировать пользователя.

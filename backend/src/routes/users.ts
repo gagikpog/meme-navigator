@@ -317,41 +317,6 @@ router.put('/:id', requireAdminAccess, avatarUpload.single('avatar'), async (req
     }
 });
 
-// Удалить пользователя
-router.delete('/:id', requireAdminAccess, (req: any, res: Response) => {
-    const { id } = req.params;
-
-    // Нельзя удалить самого себя
-    if (parseInt(id) === req.user['id']) {
-        res.status(400).json({ message: 'Нельзя удалить самого себя' });
-        return;
-    }
-
-    db.get('SELECT id FROM users WHERE id = ?', [id], (err: Error | null, user: any) => {
-        if (err) {
-            res.status(500).json({ message: 'Ошибка базы данных' });
-            return;
-        }
-
-        if (!user) {
-            res.status(404).json({ message: 'Пользователь не найден' });
-            return;
-        }
-
-        db.run('DELETE FROM users WHERE id = ?', [id], function (err: Error | null) {
-            if (err) {
-                res.status(500).json({ message: 'Ошибка удаления пользователя' });
-                return;
-            }
-
-            res.json({
-                message: 'Пользователь успешно удален',
-                changes: this.changes,
-            });
-        });
-    });
-});
-
 // Блокировать/разблокировать пользователя
 router.patch('/:id/block', requireAdminAccess, (req: any, res: Response) => {
     const { id } = req.params;
