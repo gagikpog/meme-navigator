@@ -7,6 +7,9 @@ import { authFetch } from '../utils/authFetch';
 import ImageWithAuth from '../components/ImageWithAuth';
 import ImageModal from '../components/ImageModal';
 import { useDialog } from '../hooks/useDialog';
+import IconModeration from '../icons/Moderation';
+import IconWeb from '../icons/Web';
+import IconPrivate from '../icons/Private';
 
 const MemeDetail = () => {
   const { memes, refreshMemes } = useMemes();
@@ -331,23 +334,36 @@ const MemeDetail = () => {
 
           {hasModeratorAccess() && (
             <div className="mt-4 mb-4">
-              <label className="flex items-center gap-2 text-sm font-medium text-gray-700 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={permissions === 'public'}
-                  onChange={(e) => setPermissions(e.target.checked ? 'public' : 'private')}
-                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                  disabled={!hasEditRight}
-                />
-                {permissions === 'public' ? (
-                  <span className="text-green-600">🌐</span>
-                ) : (
-                  <span className="text-red-600">🔒</span>
-                )}
-                Публичная
-              </label>
+              {permissions === 'moderate' ? (
+                <div className='flex items-baseline'>
+                  <span className="text-green-600"><IconModeration size={20}/></span>
+                  <button onClick={() => setPermissions('public')} className="bg-green-600 text-white px-2 py-1 ml-2 rounded hover:bg-green-700" >
+                    Опубликовать
+                  </button>
+                  <button onClick={() => setPermissions('private')} className="bg-red-600 text-white px-2 py-1 ml-2 rounded hover:bg-red-700" >
+                    Отклонить
+                  </button>
+                </div>
+              ) : (
+                <label className="flex items-center gap-2 text-sm font-medium text-gray-700 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={permissions === 'public'}
+                    onChange={(e) => setPermissions(e.target.checked ? 'public' : 'private')}
+                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    disabled={!hasEditRight}
+                  />
+                  {permissions === 'public' ? (
+                    <span className="text-green-600"><IconWeb size={20}/></span>
+                  ) : (
+                    <span className="text-red-600"><IconPrivate size={20}/></span>
+                  )}
+                  Публичная
+                </label>
+              )
+              }
               <p className="text-xs text-gray-500 mt-1">
-                {permissions === 'public' ? 'Мем доступен всем пользователям' : 'Мем доступен только администраторам'}
+                {permissions === 'public' ? 'Мем доступен всем пользователям' : permissions === 'private' ? 'Мем доступен только администраторам' : 'Мем находится на рассмотрении'}
               </p>
             </div>
           )}

@@ -7,6 +7,8 @@ import DropdownMenu from './DropdownMenu';
 import { useMemo } from 'react';
 import IconTimeline from '../icons/Timeline';
 import IconRss from '../icons/Rss';
+import IconUsers from '../icons/Users';
+import IconLogout from '../icons/Logout';
 
 const Header = () => {
   const navigate = useNavigate();
@@ -32,10 +34,10 @@ const Header = () => {
 
   const menuItems = useMemo(() => {
     return [
-      { key: "timeline", name: "Хронология", visible: true, url: "/timeline", icon: <IconTimeline/>},
-      { key: "users", name: "Пользователи", visible: isAdmin(), url: "/admin/users", icon: <span>👥</span>},
-      { key: "rss", name: "RSS", visible: true, title: "Скопировать RSS ссылку", icon: <IconRss/>},
-      { key: "logout", name: "Выйти", visible: true },
+      { key: "timeline", name: "Хронология", visible: true, url: "/timeline", icon: <IconTimeline size={16}/>},
+      { key: "users", name: "Пользователи", visible: isAdmin(), url: "/admin/users", icon: <IconUsers size={16} />},
+      { key: "rss", name: "RSS", visible: true, title: "Скопировать RSS ссылку", icon: <IconRss size={16}/>},
+      { key: "logout", name: "Выйти", visible: true, icon: <IconLogout size={16} /> },
     ];
   }, [isAdmin]);
 

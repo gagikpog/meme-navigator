@@ -2,6 +2,8 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useMemes } from '../context/MemeContext';
 import { authFetch } from '../utils/authFetch';
 import { useAuth } from '../context/AuthContext';
+import IconWeb from '../icons/Web';
+import IconPrivate from '../icons/Private';
 
 const UploadForm = ({ onUpload }) => {
   const [file, setFile] = useState(null);
@@ -319,9 +321,9 @@ const UploadForm = ({ onUpload }) => {
               className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
             />
             {permissions === "public" ? (
-              <span className="text-green-600">🌐</span>
+              <span className="text-green-600"><IconWeb size={20}/></span>
             ) : (
-              <span className="text-red-600">🔒</span>
+              <span className="text-red-600"><IconPrivate size={20}/></span>
             )}
             Публичная
           </label>

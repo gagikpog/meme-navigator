@@ -8,6 +8,9 @@ import ImageWithAuth from '../components/ImageWithAuth';
 import compareText from '../utils/compareText';
 import { useMemo } from 'react';
 import formatDate from '../utils/formatDate';
+import IconWeb from '../icons/Web';
+import IconPrivate from '../icons/Private';
+import IconModeration from '../icons/Moderation';
 
 const Home = () => {
   const { memes, loading } = useMemes();
@@ -128,7 +131,7 @@ const Home = () => {
           <Link
             key={img.fileName}
             to={`/meme/${img.fileName}`}
-            className="group relative border rounded-xl overflow-hidden bg-white shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-0.5 hover:border-gray-300"
+            className="group relative border rounded-xl overflow-hidden bg-white shadow-sm hover:shadow-md transition-all duration-200 hover:border-gray-300"
             title={img.description}
           >
             <div className="relative w-full aspect-[4/3] overflow-hidden bg-gray-100">
@@ -152,12 +155,17 @@ const Home = () => {
                   <>
                     {img.permissions === 'public' && (
                       <span className="shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-green-50 text-green-600 border border-green-200" title="Публичный мем">
-                        🌐 public
+                        <IconWeb size={16}/> Опубликован
                       </span>
                     )}
                     {img.permissions === 'private' && (
                       <span className="shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-red-50 text-red-600 border border-red-200" title="Только для администраторов">
-                        🔒 private
+                        <IconPrivate size={16}/> Не опубликован
+                      </span>
+                    )}
+                    {img.permissions === 'moderate' && (
+                      <span className="shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-yellow-50 text-yellow-600 border border-red-200" title="Только для администраторов">
+                        <IconModeration size={16}/> Модерация
                       </span>
                     )}
                   </>
