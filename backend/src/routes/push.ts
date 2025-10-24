@@ -45,7 +45,7 @@ router.post('/notify', requireModeratorAccess, (req: any, res: Response) => {
         userIds,
         excludeUserIds,
         excludeSessionIds,
-        permissions,
+        rules,
     } = req.body;
 
     const payload = {
@@ -55,7 +55,7 @@ router.post('/notify', requireModeratorAccess, (req: any, res: Response) => {
         url,
     };
 
-    sendNotifications(payload, { userIds, sessionIds, excludeUserIds, excludeSessionIds, permissions })
+    sendNotifications(payload, { userIds, sessionIds, excludeUserIds, excludeSessionIds, rules })
         .then((data) => {
             res.json(data);
         })

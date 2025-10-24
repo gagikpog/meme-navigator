@@ -47,7 +47,7 @@ const baseAuth = (req: Request, res: Response, next: NextFunction): void => {
     try {
         // Проверяем, не заблокирован ли пользователь
         db.get(
-            'SELECT is_blocked, role FROM users WHERE id = ?',
+            'SELECT is_blocked, role, name FROM users WHERE id = ?',
             [user.id],
             (err: Error | null, userResult: Partial<User>) => {
                 if (err) {

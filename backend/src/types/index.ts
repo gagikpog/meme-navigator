@@ -55,6 +55,7 @@ export interface JWTPayload {
     username: string;
     role: TRules;
     deviceId: string;
+    name: string;
 }
 
 // Request extensions
@@ -76,7 +77,7 @@ export interface NotificationFilter {
     sessionIds?: number[];
     excludeUserIds?: number[];
     excludeSessionIds?: number[];
-    permissions?: string[];
+    rules?: TRules[];
 }
 
 // Push subscription types

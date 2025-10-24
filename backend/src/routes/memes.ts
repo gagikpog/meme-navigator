@@ -4,7 +4,7 @@ import db from '../db/database';
 import { requireReadAccess, requireWriteAccess } from '../middleware/auth';
 import sendNotifications from '../utils/sendNotifications';
 import { deleteImage } from '../utils/fileManager';
-import { AuthenticatedRequest, Meme, TPermissions } from '../types';
+import { AuthenticatedRequest, Meme, NotificationData, TPermissions, TRules, User } from '../types';
 
 const router = express.Router();
 
@@ -152,15 +152,29 @@ router.post('/', requireWriteAccess, upload.single('image'), (req: any, res: Res
                 return;
             }
 
+            const rules: TRules[] = [];
+            let title: string = '';
+
+            switch (permissions) {
+                case 'private':
+                case 'moderate':
+                    rules.push('admin', 'moderator');
+                    title = `${user.name} опубликовал новое изображение!`;
+                    break;
+                case 'public':
+                    rules.push('admin', 'moderator', 'user', 'writer');
+                    title = `${user.name} отправил новое изображение на рассмотрение!`;
+            }
+
             sendNotifications(
                 {
-                    title: 'Новое изображение!',
-                    body: (tagArray || []).map((tag) => `#${tag}`).join(' ') || description || 'без тегов',
+                    title,
+                    body: `${(tagArray || []).map((tag) => `#${tag}`).join(' ')} ${description}`,
                     icon: '/icons/icon_x192.png',
                     url: `/meme/${fileName}`,
                 },
                 {
-                    permissions: permissions === 'public' ? [] : ['admin', 'moderator'],
+                    rules,
                     excludeUserIds: [user.id],
                 }
             );
@@ -182,7 +196,7 @@ router.put('/:id', requireWriteAccess, (req: any, res: Response) => {
     const { user } = req as AuthenticatedRequest;
     let tagArrayStr = '[]';
     let tagArray: string[] = [];
-    
+
     if (typeof updateTags === 'string') {
         try {
             const parsed = JSON.parse(updateTags);
@@ -208,8 +222,16 @@ router.put('/:id', requireWriteAccess, (req: any, res: Response) => {
         return;
     }
 
+    const memesSelectQuery = `
+        SELECT memes.*, users.name
+            FROM memes
+        LEFT JOIN users
+            ON memes.user_id = users.id
+        WHERE memes.id = ?
+    `;
+
     // Сначала проверяем, существует ли мем
-    db.get('SELECT * FROM memes WHERE id = ?', [req.params['id']], (err: Error | null, meme: Meme) => {
+    db.get(memesSelectQuery, [req.params['id']], (err: Error | null, meme: Meme & Pick<User, 'name'>) => {
         if (err) {
             res.status(500).json({ error: err.message });
             return;
@@ -254,22 +276,42 @@ router.put('/:id', requireWriteAccess, (req: any, res: Response) => {
                 return;
             }
 
-            if (permissions !== meme.permissions && permissions === 'public') {
+            if (permissions !== meme.permissions) {
                 let tagArray: string[] = [];
 
                 try {
                     tagArray = updateTags.length ? updateTags : JSON.parse(meme.tags);
                 } catch {}
 
-                sendNotifications(
-                    {
-                        title: 'Новое изображение!',
-                        body: (tagArray || []).map((tag) => `#${tag}`).join(' ') || description || 'без тегов',
-                        icon: '/icons/icon_x192.png',
-                        url: `/meme/${meme.fileName}`,
-                    },
-                    { permissions: ['user'], excludeUserIds: [user.id] }
-                );
+                const data: NotificationData = {
+                    title: '',
+                    body: `${(tagArray || []).map((tag) => `#${tag}`).join(' ')} ${description}`,
+                    icon: '/icons/icon_x192.png',
+                    url: `/meme/${meme.fileName}`,
+                };
+
+                if (permissions === 'public') {
+                    sendNotifications(
+                        {
+                            ...data,
+                            title: `${meme.name} опубликовал новое изображение!`,
+                        },
+                        { rules: ['user', 'writer'], excludeUserIds: [user.id, meme.user_id] }
+                    );
+                }
+
+                if (meme.permissions === 'moderate') {
+                    sendNotifications(
+                        {
+                            ...data,
+                            title:
+                                permissions === 'public'
+                                    ? 'Ваш мем принят и опубликован!'
+                                    : 'Ваш мем не принят, его можете видеть только вы и администратор!',
+                        },
+                        { userIds: [meme.user_id] }
+                    );
+                }
             }
 
             res.json({ updated: this.changes });

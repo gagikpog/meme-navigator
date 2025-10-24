@@ -81,13 +81,13 @@ function filterSubscriptionsSession(rows: any[], filter: NotificationFilter): an
     // Фильтруем по исключающим спискам
     const excludeSessionIds = new Set(filter.excludeSessionIds || []);
     const excludeUserIds = new Set(filter.excludeUserIds || []);
-    const permissions = Array.isArray(filter.permissions) ? filter.permissions : [filter.permissions];
+    const rules = filter.rules ? (Array.isArray(filter.rules) ? filter.rules : [filter.rules]) : [];
 
     return rows.filter((row: any) => {
         if (excludeSessionIds.has(row.session_id)) return false;
         if (excludeUserIds.has(row.user_id)) return false;
-        if (permissions.length && permissions[0] && permissions[0] !== '') {
-            return (permissions as string[]).includes(row.role);
+        if (rules.length && rules[0]) {
+            return rules.includes(row.role);
         }
         return true;
     });
