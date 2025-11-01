@@ -11,11 +11,13 @@ import IconModeration from '../icons/Moderation';
 import IconWeb from '../icons/Web';
 import IconPrivate from '../icons/Private';
 import IconClose from '../icons/Close';
+import useSmartBack from '../hooks/useSmartBack';
 
 const MemeDetail = () => {
   const { memes, refreshMemes } = useMemes();
   const { fileName } = useParams();
   const navigate = useNavigate();
+  const smartBack = useSmartBack();
   const { canEditMeme, canDeleteMeme, hasModeratorAccess } = useAuth();
   const { Dialog, showModal: showDialog } = useDialog();
 
@@ -204,10 +206,10 @@ const MemeDetail = () => {
                 buttonOrder: ['yes', 'no']
               });
               if (confirmed === 'yes') {
-                navigate(-1);
+                smartBack();
               }
             } else {
-              navigate(-1);
+              smartBack();
             }
           }} />
         </div>
