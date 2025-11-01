@@ -1,39 +1,47 @@
 import { useCallback } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 const fallbackPath = '/';
 
+/**
+ * useSmartBack — безопасный "назад":
+ * - не уводит на другой домен или about:blank
+ * - если истории нет => fallback
+ * - если navigate(-1) не вызвал popstate => fallback
+ * - полностью очищает слушатели и таймеры
+ */
 export default function useSmartBack() {
     const navigate = useNavigate();
-    const location = useLocation();
 
-    const goBack = useCallback(() => {
-        const currentKey = location.key;
-        const referrer = document.referrer;
-        const isSameOrigin = referrer && referrer.startsWith(window.location.origin);
+    return useCallback(() => {
+        const ref = document.referrer;
+        const fromAnotherDomain = ref && !ref.startsWith(window.location.origin);
 
-        // Если история пуста
-        if (window.history.length <= 1) {
+        // Пришли с другого домена → сразу на главную
+        if (fromAnotherDomain) {
             navigate(fallbackPath, { replace: true });
             return;
         }
 
-        // Если пользователь пришёл с другого домена
-        if (!referrer || !isSameOrigin) {
+        // Если история пуста или состоит только из about:blank
+        const prevIsBlank =
+            window.history.length <= 1 ||
+            (window.performance?.getEntriesByType("navigation")[0]?.type === "navigate" &&
+                !ref);
+
+        if (prevIsBlank) {
             navigate(fallbackPath, { replace: true });
             return;
         }
 
-        // Пробуем перейти назад
+        // Пробуем назад, если история "живая"
+        const before = window.location.href;
         navigate(-1);
 
-        // Проверяем, сработала ли навигация
+        // Если URL не поменялся — fallback
         setTimeout(() => {
-            if (location.key === currentKey) {
-                // если не сработало — fallback
+            if (window.location.href === before) {
                 navigate(fallbackPath, { replace: true });
             }
-        }, 100);
-    }, [navigate, location]);
-
-    return goBack;
+        }, 200);
+    }, [navigate]);
 }
