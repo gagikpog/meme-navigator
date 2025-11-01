@@ -12,6 +12,7 @@ import IconWeb from '../icons/Web';
 import IconPrivate from '../icons/Private';
 import IconClose from '../icons/Close';
 import useSmartBack from '../hooks/useSmartBack';
+import formatDate from '../utils/formatDate';
 
 const MemeDetail = () => {
   const { memes, refreshMemes } = useMemes();
@@ -286,7 +287,10 @@ const MemeDetail = () => {
 
         {/* Блок редактирования внизу */}
         <div className="mt-8 border-t pt-6">
-          <h2 className="text-lg font-semibold mb-2">Редактировать теги:</h2>
+          <div className='text-xs text-gray-400 mb-2'>
+            Добавил {meme.authorName} {meme.authorSurname} {formatDate(meme.created_at)}
+          </div>
+          <h2 className="text-lg font-semibold mb-2">Теги:</h2>
           <div className="mb-4">
             <input
               type="text"

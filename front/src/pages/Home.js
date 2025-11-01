@@ -172,7 +172,7 @@ const Home = () => {
                 )}
               </div>
               <div className="text-xs text-gray-400">
-                Автор {img.authorName} {img.authorSurname}: {formatDate(img.created_at)}
+                Автор {img.authorName} {img.authorSurname} {formatDate(img.created_at)}
               </div>
               <p className="text-xs text-gray-500 truncate">
                 {Array.isArray(img.tags) && img.tags.length > 0 ? `#${img.tags.slice(0, 3).join(' #')}${img.tags.length > 3 ? ' …' : ''}` : 'Без тегов'}
