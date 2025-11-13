@@ -1,11 +1,12 @@
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
-import { authFetch } from '../utils/authFetch';
+import { useAuth } from './AuthContext';
 
 const MemeContext = createContext();
 
 export const MemeProvider = ({ children }) => {
     const [memes, setMemes] = useState([]);
     const [loading, setLoading] = useState(true);
+    const { authFetch } = useAuth();
 
 
     const fetchMemes = useCallback(async () => {

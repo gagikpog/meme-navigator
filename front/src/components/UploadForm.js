@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useMemes } from '../context/MemeContext';
-import { authFetch } from '../utils/authFetch';
 import { useAuth } from '../context/AuthContext';
 import IconWeb from '../icons/Web';
 import IconPrivate from '../icons/Private';
@@ -18,7 +17,7 @@ const UploadForm = ({ onUpload }) => {
   const pasteAreaRef = useRef(null);
   const fileInputRef = useRef(null);
 
-  const { hasModeratorAccess } = useAuth();
+  const { hasModeratorAccess, authFetch } = useAuth();
 
   const validateForm = () => {
     const newErrors = {};

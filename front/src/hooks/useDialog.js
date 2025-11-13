@@ -58,7 +58,7 @@ const DialogComponent = ({
           buttonData.className || config.className
         }`}
       >
-        <span>{buttonData.icon || config.icon}</span>
+        {buttonData.icon !== null ? <span>{buttonData.icon || config.icon}</span> : null}
         <span>{buttonData.text || config.text}</span>
       </button>
     );

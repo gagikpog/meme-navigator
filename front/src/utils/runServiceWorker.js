@@ -1,6 +1,6 @@
 import  urlBase64ToUint8Array  from './urlBase64ToUint8Array';
 import { VAPID_PUBLIC } from '../config';
-import { authFetch } from './authFetch';
+import { authorizationFetch } from './authFetch';
 
 export default function runServiceWorker() {
 
@@ -75,7 +75,7 @@ async function getNotifyPermission(version) {
         console.log('Подписка уже существует');
     }
 
-    await authFetch('/push/subscribe', {
+    await authorizationFetch('/push/subscribe', {
         method: 'POST',
         body: JSON.stringify(subscription),
         headers: { 'Content-Type': 'application/json' }

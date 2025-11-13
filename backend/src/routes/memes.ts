@@ -334,7 +334,7 @@ router.delete('/:id', requireWriteAccess, (req: any, res: Response) => {
             return;
         }
 
-        if (user.role === 'moderator') {
+        if (user.role === 'writer') {
             if (meme.user_id !== user.id) {
                 res.status(403).json({ error: 'У вас нет прав на удаление этого мема' });
                 return;

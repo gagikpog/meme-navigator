@@ -100,8 +100,6 @@ npm run dev
 Добавьте в `.env` файл:
 
 ```
-ADMIN_USERNAME=admin
-ADMIN_PASSWORD=admin123
 JWT_SECRET=your_secret_key_here
 ```
 

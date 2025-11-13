@@ -1,6 +1,6 @@
 import { API_URL } from "../config";
 
-export const authFetch = (url, options = {}) => {
+export const authorizationFetch = (url, options = {}) => {
   const token = localStorage.getItem('token');
   const deviceId = localStorage.getItem('deviceId');
   return fetch(`${API_URL}${url}`, {
@@ -19,7 +19,8 @@ export const authFetch = (url, options = {}) => {
     }
 
     if (!response.ok) {
-      throw new Error((await response.json())?.message);
+      const result = await response.json();
+      throw new Error(result.error);
     }
     return response;
   });

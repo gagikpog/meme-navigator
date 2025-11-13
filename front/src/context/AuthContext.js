@@ -1,11 +1,28 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { authFetch } from '../utils/authFetch';
+import { authorizationFetch } from '../utils/authFetch';
+import useDialog from '../hooks/useDialog';
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const { Dialog, showModal: showDialog } = useDialog();
+
+  const authFetch = useCallback((url, options = {}, confirmError = true) => {
+    return authorizationFetch(url, options).catch((error) => {
+      if (confirmError && error.message) {
+        showDialog({
+            title: 'Ошибка',
+            description: error.message,
+            buttons: {
+              yes: { text: 'Ок', icon: null }
+            }
+        });
+      }
+      throw error;
+    });
+  }, [showDialog]);
 
   const updateUserData = useCallback(() => {
      authFetch('/api/users/me').then((data) => data.json()).then((data) => {
@@ -18,7 +35,7 @@ export const AuthProvider = ({ children }) => {
       }).finally(() => {
         setLoading(false);
       });
-  }, []);
+  }, [authFetch]);
 
   useEffect(() => {
 // Проверяем, есть ли сохраненные данные пользователя
@@ -93,10 +110,12 @@ export const AuthProvider = ({ children }) => {
         canFilter,
         canCreateMeme,
         canEditMeme,
-        canDeleteMeme
+        canDeleteMeme,
+        authFetch,
       }}
     >
       {children}
+      <Dialog />
     </AuthContext.Provider>
   );
 };

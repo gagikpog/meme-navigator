@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { authFetch } from '../utils/authFetch';
+import { authorizationFetch } from '../utils/authFetch';
 const cache = new Map();
 
 const ImageWithAuth = ({ src, alt = '', className = '', style = {}, fallback, title }) => {
@@ -15,7 +15,7 @@ const ImageWithAuth = ({ src, alt = '', className = '', style = {}, fallback, ti
           return;
         }
 
-        const res = await authFetch(src);
+        const res = await authorizationFetch(src);
         if (!res.ok) throw new Error('Ошибка загрузки изображения');
         const blob = await res.blob();
         const url = URL.createObjectURL(blob);

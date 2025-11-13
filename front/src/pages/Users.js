@@ -1,5 +1,4 @@
 import React, { useEffect, useMemo, useState, useCallback } from 'react';
-import { authFetch } from '../utils/authFetch';
 import { useAuth } from '../context/AuthContext';
 import formatDate from '../utils/formatDate';
 import AvatarDisplay from '../components/AvatarDisplay';
@@ -26,7 +25,7 @@ const generateStrongPassword = () => {
 };
 
 const Users = () => {
-  const { isAdmin } = useAuth();
+  const { isAdmin, authFetch } = useAuth();
   const [users, setUsers] = useState([]);
   const [pagination, setPagination] = useState({ page: 1, limit: 10, total: 0, pages: 1 });
   const [search, setSearch] = useState('');

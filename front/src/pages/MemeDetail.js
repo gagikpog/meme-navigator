@@ -3,7 +3,6 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useMemes } from '../context/MemeContext';
 import { useAuth } from '../context/AuthContext';
 import { IMAGE_URL } from '../config';
-import { authFetch } from '../utils/authFetch';
 import ImageWithAuth from '../components/ImageWithAuth';
 import ImageModal from '../components/ImageModal';
 import { useDialog } from '../hooks/useDialog';
@@ -19,7 +18,7 @@ const MemeDetail = () => {
   const { fileName } = useParams();
   const navigate = useNavigate();
   const smartBack = useSmartBack();
-  const { canEditMeme, canDeleteMeme, hasModeratorAccess } = useAuth();
+  const { canEditMeme, canDeleteMeme, hasModeratorAccess, authFetch } = useAuth();
   const { Dialog, showModal: showDialog } = useDialog();
 
   const currentMemeIndex = useMemo(() => {
