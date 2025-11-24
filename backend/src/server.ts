@@ -8,6 +8,8 @@ import pushRoutes from './routes/push';
 import rssRoutes from './routes/rss';
 import authRoutes from './routes/auth';
 import userRoutes from './routes/users';
+import commentRoutes from './routes/comments';
+import ratingRoutes from './routes/ratings';
 
 require('dotenv').config();
 
@@ -66,6 +68,8 @@ app.use('/meme/api/auth', authRoutes);
 app.use('/meme', authWithoutDeviceId, rssRoutes); // public RSS at /meme/rss.xml
 app.use('/meme/api/memes', auth, memeRoutes);
 app.use('/meme/api/users', auth, userRoutes);
+app.use('/meme/api/comments', auth, commentRoutes);
+app.use('/meme/api/ratings', auth, ratingRoutes);
 app.use('/meme/push', pushRoutes);
 
 // Обработка 404 - маршрут не найден

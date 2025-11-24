@@ -25,6 +25,10 @@ export interface Meme {
     permissions: TPermissions;
     created_at: string;
     user_id: number;
+    commentsCount?: number;
+    likesCount?: number;
+    dislikesCount?: number;
+    userRating?: number;
 }
 
 export interface UserSession {
@@ -131,6 +135,31 @@ export interface RequestWithFile {
     headers: any;
     method: string;
     path: string;
+}
+
+// Comment types
+export interface Comment {
+    id: number;
+    meme_id: number;
+    user_id: number;
+    text: string;
+    created_at: string;
+    parent_id?: number | null;
+    is_deleted?: number; // 0 = not deleted, 1 = deleted
+    authorName?: string;
+    authorSurname?: string;
+    authorUsername?: string;
+    replies?: Comment[]; // Для иерархии на фронтенде
+}
+
+// Rating types
+export interface Rating {
+    id: number;
+    meme_id: number;
+    user_id: number;
+    rating: number; // -5 (dislike), 0 (no rating), 5 (like)
+    created_at: string;
+    updated_at: string;
 }
 
 // Database callback types

@@ -12,6 +12,8 @@ import IconPrivate from '../icons/Private';
 import IconClose from '../icons/Close';
 import useSmartBack from '../hooks/useSmartBack';
 import formatDate from '../utils/formatDate';
+import Comments from '../components/Comments';
+import Ratings from '../components/Ratings';
 
 const MemeDetail = () => {
   const { memes, refreshMemes } = useMemes();
@@ -289,6 +291,8 @@ const MemeDetail = () => {
           <div className='text-xs text-gray-400 mb-2'>
             Добавил {meme.authorName} {meme.authorSurname} {formatDate(meme.created_at)}
           </div>
+          {meme?.id && <Ratings memeId={meme.id} />}
+          {meme?.id && <Comments memeId={meme.id} />}
           <h2 className="text-lg font-semibold mb-2">Теги:</h2>
           <div className="mb-4">
             <input

@@ -1,0 +1,117 @@
+import React, { useEffect, useState } from 'react';
+import { useAuth } from '../context/AuthContext';
+import { useMemes } from '../context/MemeContext';
+
+const Ratings = ({ memeId }) => {
+  const { authFetch } = useAuth();
+  const { refreshMemes } = useMemes();
+
+  const [userRating, setUserRating] = useState(0);
+  const [likesCount, setLikesCount] = useState(0);
+  const [dislikesCount, setDislikesCount] = useState(0);
+  const [isRatingLoading, setIsRatingLoading] = useState(false);
+
+  useEffect(() => {
+    if (memeId) {
+      loadRating();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [memeId]);
+
+  const loadRating = async () => {
+    if (!memeId) return;
+    try {
+      const res = await authFetch(`/api/ratings/meme/${memeId}`);
+      if (res.ok) {
+        const data = await res.json();
+        setUserRating(data.rating || 0);
+      }
+      const statsRes = await authFetch(`/api/ratings/meme/${memeId}/stats`);
+      if (statsRes.ok) {
+        const stats = await statsRes.json();
+        setLikesCount(stats.likesCount || 0);
+        setDislikesCount(stats.dislikesCount || 0);
+      }
+    } catch (error) {
+      console.error('Error loading rating:', error);
+    }
+  };
+
+  const handleRating = async (rating) => {
+    if (!memeId || isRatingLoading) return;
+    setIsRatingLoading(true);
+    try {
+      // Если пользователь нажимает на ту же кнопку, снимаем оценку
+      const newRating = userRating === rating ? 0 : rating;
+      const res = await authFetch('/api/ratings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ meme_id: memeId, rating: newRating }),
+      });
+      if (res.ok) {
+        setUserRating(newRating);
+        await loadRating(); // Обновляем счетчики
+        await refreshMemes(); // Обновляем счетчики в списке мемов
+      }
+    } catch (error) {
+      console.error('Error setting rating:', error);
+    } finally {
+      setIsRatingLoading(false);
+    }
+  };
+
+  return (
+    <div className="mb-6 flex items-center gap-4">
+      <div className="flex items-center gap-2">
+        <button
+          onClick={() => handleRating(5)}
+          disabled={isRatingLoading}
+          className={`flex items-center gap-1 px-3 py-2 rounded transition-colors ${
+            userRating === 5
+              ? 'bg-green-100 text-green-700 hover:bg-green-200'
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+          } ${isRatingLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+          title="Нравится"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+            className="w-5 h-5"
+          >
+            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+          </svg>
+          <span>{likesCount}</span>
+        </button>
+        <button
+          onClick={() => handleRating(-5)}
+          disabled={isRatingLoading}
+          className={`flex items-center gap-1 px-3 py-2 rounded transition-colors ${
+            userRating === -5
+              ? 'bg-red-100 text-red-700 hover:bg-red-200'
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+          } ${isRatingLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+          title="Не нравится"
+        >
+
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 58 46"
+            fill="#804030"
+            >
+              <g transform="translate(-44,-33)">
+                <path d="m 45.721003,79.34202 c -0.789057,-1.747601 0.98767,-5.786855 2.983929,-3.808161 1.369797,1.436615 5.448352,3.15971 4.423651,-0.324119 -2.36819,0.06188 -4.855086,-2.3925 -2.400141,-4.416076 0.877446,-1.091197 2.814204,-2.672639 2.938774,-0.401251 0.461259,1.046615 0.42579,2.594398 1.973405,2.518898 2.450266,0.583053 4.869928,3.100277 3.832602,5.733802 -0.447884,1.667277 -2.241846,1.662665 -3.633295,1.579135 -3.260127,0 -6.520255,0 -9.780382,0 -0.112848,-0.294076 -0.225695,-0.588152 -0.338543,-0.882228 z m 20.735153,-1.361413 c -1.644635,-1.300122 -4.446172,-2.384694 -4.452505,-4.788483 0.320722,-1.764579 0.641445,-3.529158 0.962167,-5.293737 -2.98519,-2.033788 -6.088025,-4.075205 -9.672173,-4.839631 -2.22326,-1.10315 -5.084968,-1.885376 -6.233531,-4.262168 -0.945255,-1.774312 -2.46789,-3.406472 -2.398623,-5.525661 -0.16435,-1.592392 -0.328699,-3.184785 -0.493049,-4.777178 1.126342,-2.284121 4.728093,-3.587283 6.274902,-1.11868 1.713907,2.249006 0.328853,5.721696 2.817427,7.425083 1.199029,1.203015 3.361916,3.021928 3.250882,0.05542 1.600416,-6.101283 5.546565,-12.383418 11.998288,-14.052342 3.448578,-1.061415 7.343441,-0.909379 10.341688,-3.167211 1.279611,-0.346266 3.46334,-3.044793 3.984408,-0.730826 1.118449,2.708956 2.236897,5.417913 3.355346,8.126869 1.501658,1.040391 4.042659,1.525034 5.36834,0.01275 1.667716,-3.046793 3.463567,-6.032845 5.183338,-9.055822 0.841417,2.744414 4.589349,1.972495 5.896429,4.084794 0.39594,2.051393 -1.12823,3.823933 -1.75674,5.697605 -0.3714,0.83283 -0.55548,1.953313 -1.721818,1.565377 -1.984982,0 -3.969964,0 -5.954946,0 -2.563933,4.082514 -5.237927,8.095822 -7.733416,12.221245 -0.946046,4.25145 -2.143138,8.449844 -2.856443,12.750933 1.636226,1.451672 4.521259,1.979164 4.047273,4.965608 -0.04684,1.808962 -2.443245,3.168235 -4.187942,2.946191 -2.044772,-0.09671 -4.089544,-0.193425 -6.134316,-0.290137 0.663421,-2.312158 1.700719,-4.829405 -0.935342,-6.213696 -0.841058,-1.365234 -1.045931,-3.914316 0.507304,-4.986339 0.988466,-0.988465 1.976931,-1.976931 2.965397,-2.965396 0.03492,-2.115663 1.306439,-4.424056 0.334753,-6.408671 -0.855407,-2.142372 -1.898922,-4.236106 -4.282329,-4.953282 -1.393914,-1.402354 -6.250191,-1.493377 -3.87537,1.024045 2.499254,-0.03055 4.163272,1.63401 5.507164,3.542221 1.729479,2.762513 0.02547,7.579495 -3.235704,8.528601 -1.478613,0.612434 -1.599614,2.460231 -2.38413,3.691867 -1.337071,1.649207 1.972403,1.520191 2.635823,2.812867 1.422089,0.552096 1.390315,1.794859 1.294243,3.08026 0.412498,1.580944 -1.309124,2.434482 -2.528125,2.947296 -2.111324,0.487403 -4.143374,-1.092614 -5.88867,-2.049776 z"/>
+                <path d="m 69.097586,37.99907 -3.912173,-6.297997 -3.912173,-6.297997 7.410313,-0.239043 7.410311,-0.239042 -3.498139,6.53704 z" transform="matrix(0.54992929,0.03843532,-0.04432574,0.6342089,52.873368,16.03678)" />
+              </g>
+          </svg>
+          <span>{dislikesCount}</span>
+        </button>
+      </div>
+    </div>
+  );
+};
+
+export default Ratings;
+
+

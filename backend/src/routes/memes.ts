@@ -25,13 +25,20 @@ router.get('/', requireReadAccess, (req: any, res: Response) => {
     // Админы видят все мемы
     let query = `
         SELECT
-            memes.*, users.name AS authorName, users.surname as authorSurname, users.username as authorUsername
+            memes.*, 
+            users.name AS authorName, 
+            users.surname as authorSurname, 
+            users.username as authorUsername,
+            (SELECT COUNT(*) FROM comments WHERE comments.meme_id = memes.id) AS commentsCount,
+            (SELECT COUNT(*) FROM ratings WHERE ratings.meme_id = memes.id AND ratings.rating = 5) AS likesCount,
+            (SELECT COUNT(*) FROM ratings WHERE ratings.meme_id = memes.id AND ratings.rating = -5) AS dislikesCount,
+            (SELECT rating FROM ratings WHERE ratings.meme_id = memes.id AND ratings.user_id = ?) AS userRating
         FROM memes
         LEFT JOIN users
             ON memes.user_id = users.id
     `;
-    let params: any[] = [];
     const { user } = req as AuthenticatedRequest;
+    let params: any[] = [user.id];
 
     if (user.role === 'user') {
         // Пользователи видят только публичные мемы
@@ -45,12 +52,12 @@ router.get('/', requireReadAccess, (req: any, res: Response) => {
 
     query += ' ORDER BY created_at DESC';
 
-    db.all(query, params, (err: Error | null, rows: Meme[]) => {
+    db.all(query, params, (err: Error | null, rows: any[]) => {
         if (err) {
             res.status(500).json({ error: err.message });
             return;
         }
-        const safeRows = rows.map((meme: Meme) => {
+        const safeRows = rows.map((meme: any) => {
             let parsedTags: string[] = [];
             if (meme.tags) {
                 try {
@@ -59,7 +66,14 @@ router.get('/', requireReadAccess, (req: any, res: Response) => {
                     parsedTags = [];
                 }
             }
-            return { ...meme, tags: parsedTags };
+            return { 
+                ...meme, 
+                tags: parsedTags,
+                commentsCount: meme.commentsCount || 0,
+                likesCount: meme.likesCount || 0,
+                dislikesCount: meme.dislikesCount || 0,
+                userRating: meme.userRating || 0
+            };
         });
         res.json(safeRows);
     });
@@ -68,8 +82,20 @@ router.get('/', requireReadAccess, (req: any, res: Response) => {
 // GET one meme - доступно всем аутентифицированным пользователям
 router.get('/:id', requireReadAccess, (req: any, res: Response) => {
     const { user } = req as AuthenticatedRequest;
+    const memeId = req.params['id'];
 
-    db.get('SELECT * FROM memes WHERE id = ?', [req.params['id']], (err: Error | null, row: Meme) => {
+    const query = `
+        SELECT 
+            memes.*,
+            (SELECT COUNT(*) FROM comments WHERE comments.meme_id = memes.id) AS commentsCount,
+            (SELECT COUNT(*) FROM ratings WHERE ratings.meme_id = memes.id AND ratings.rating = 5) AS likesCount,
+            (SELECT COUNT(*) FROM ratings WHERE ratings.meme_id = memes.id AND ratings.rating = -5) AS dislikesCount,
+            (SELECT rating FROM ratings WHERE ratings.meme_id = memes.id AND ratings.user_id = ?) AS userRating
+        FROM memes
+        WHERE memes.id = ?
+    `;
+
+    db.get(query, [user.id, memeId], (err: Error | null, row: any) => {
         if (err) {
             res.status(500).json({ error: err.message });
             return;
@@ -85,11 +111,17 @@ router.get('/:id', requireReadAccess, (req: any, res: Response) => {
         // Проверяем права доступа
         if (hasViewRight || isSelfRecord) {
             try {
-                (row as any).tags = row.tags ? JSON.parse(row.tags) : [];
+                row.tags = row.tags ? JSON.parse(row.tags) : [];
             } catch {
-                (row as any).tags = [];
+                row.tags = [];
             }
-            res.json(row);
+            res.json({
+                ...row,
+                commentsCount: row.commentsCount || 0,
+                likesCount: row.likesCount || 0,
+                dislikesCount: row.dislikesCount || 0,
+                userRating: row.userRating || 0
+            });
             return;
         }
 
