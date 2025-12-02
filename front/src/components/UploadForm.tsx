@@ -55,6 +55,9 @@ const UploadForm = ({ onUpload }: IUploadFormProps) => {
         const imageBitmap = await createImageBitmap(blob);
         const maxSizePx = 1920;
         const quality = 0.85;
+        if (inputFile.type === 'image/gif') {
+          return { file: inputFile, originalSize, finalSize: originalSize };
+        }
         const targetMime = inputFile.type === 'image/png' ? 'image/png' : 'image/jpeg';
         const srcWidth = imageBitmap.width;
         const srcHeight = imageBitmap.height;
