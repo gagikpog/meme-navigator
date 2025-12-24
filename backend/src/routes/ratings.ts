@@ -54,6 +54,47 @@ router.get('/meme/:memeId/stats', requireReadAccess, (req: any, res: Response) =
     });
 });
 
+// GET users who liked or disliked a meme (loaded on-demand for tooltip)
+router.get('/meme/:memeId/users', requireReadAccess, (req: any, res: Response) => {
+    const memeId = parseInt(req.params['memeId']);
+    const type = (req.query?.type as string) || 'like';
+
+    if (isNaN(memeId)) {
+        res.status(400).json({ error: 'Invalid meme ID' });
+        return;
+    }
+
+    const ratingValue = type === 'dislike' ? -5 : type === 'like' ? 5 : null;
+    if (ratingValue === null) {
+        res.status(400).json({ error: 'Invalid reaction type. Use like or dislike' });
+        return;
+    }
+
+    const query = `
+        SELECT 
+            u.id,
+            u.username,
+            u.name,
+            u.surname,
+            u.avatar,
+            u.role
+        FROM ratings r
+        JOIN users u ON r.user_id = u.id
+        WHERE r.meme_id = ? AND r.rating = ?
+        ORDER BY r.created_at DESC
+        LIMIT 100
+    `;
+
+    db.all(query, [memeId, ratingValue], (err: Error | null, users: any[]) => {
+        if (err) {
+            res.status(500).json({ error: err.message });
+            return;
+        }
+
+        res.json({ users: users || [] });
+    });
+});
+
 // POST/PUT create or update a rating
 router.post('/', requireReadAccess, (req: any, res: Response) => {
     const { meme_id, rating } = req.body;

@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { useMemes } from '../context/MemeContext';
 import IconDislike from '../icons/Dislike';
 import IconLike from '../icons/Like';
+import ReactionUsersPopover from './ReactionUsersPopover';
 
 interface RatingsProps {
   memeId: number;
@@ -76,32 +77,36 @@ const Ratings = ({ memeId }: RatingsProps) => {
   return (
     <div className="mb-6 flex items-center gap-4">
       <div className="flex items-center gap-2">
-        <button
-          onClick={() => void handleRating(5)}
-          disabled={isRatingLoading}
-          className={`flex items-center gap-1 px-3 py-2 rounded transition-colors ${
-            userRating === 5
-              ? 'bg-green-100 text-green-700 hover:bg-green-200'
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-          } ${isRatingLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
-          title="Нравится"
-        >
-          <IconLike size={16} />
-          <span>{likesCount}</span>
-        </button>
-        <button
-          onClick={() => void handleRating(-5)}
-          disabled={isRatingLoading}
-          className={`flex items-center gap-1 px-3 py-2 rounded transition-colors ${
-            userRating === -5
-              ? 'bg-red-100 text-red-700 hover:bg-red-200'
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-          } ${isRatingLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
-          title="Не нравится"
-        >
-          <IconDislike size={16}/>
-          <span>{dislikesCount}</span>
-        </button>
+        <ReactionUsersPopover memeId={memeId} type="like">
+          <button
+            onClick={() => void handleRating(5)}
+            disabled={isRatingLoading}
+            className={`flex items-center gap-1 px-3 py-2 rounded transition-colors ${
+              userRating === 5
+                ? 'bg-green-100 text-green-700 hover:bg-green-200'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            } ${isRatingLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+            title="Нравится"
+          >
+            <IconLike size={16} />
+            <span>{likesCount}</span>
+          </button>
+        </ReactionUsersPopover>
+        <ReactionUsersPopover memeId={memeId} type="dislike" align="right">
+          <button
+            onClick={() => void handleRating(-5)}
+            disabled={isRatingLoading}
+            className={`flex items-center gap-1 px-3 py-2 rounded transition-colors ${
+              userRating === -5
+                ? 'bg-red-100 text-red-700 hover:bg-red-200'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            } ${isRatingLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+            title="Не нравится"
+          >
+            <IconDislike size={16}/>
+            <span>{dislikesCount}</span>
+          </button>
+        </ReactionUsersPopover>
       </div>
     </div>
   );

@@ -14,6 +14,7 @@ import IconModeration from '../icons/Moderation';
 import { Meme } from '../types';
 import IconDislike from '../icons/Dislike';
 import IconLike from '../icons/Like';
+import ReactionUsersPopover from '../components/ReactionUsersPopover';
 
 const Home = () => {
   const { memes, loading } = useMemes();
@@ -184,16 +185,20 @@ const Home = () => {
               {((img.likesCount || 0) > 0 || (img.dislikesCount || 0) > 0 || (img.commentsCount || 0) > 0) && (
                 <div className="flex items-center gap-3 mt-2 pt-2 border-t border-gray-100">
                   {(img.likesCount || 0) > 0 && (
-                    <div className="flex items-center gap-1 text-xs text-gray-600">
-                      <IconLike size={16} />
-                      <span>{img.likesCount}</span>
-                    </div>
+                    <ReactionUsersPopover memeId={img.id} type="like">
+                      <div className="flex items-center gap-1 text-xs text-gray-600">
+                        <IconLike size={16} />
+                        <span>{img.likesCount}</span>
+                      </div>
+                    </ReactionUsersPopover>
                   )}
                   {(img.dislikesCount || 0) > 0 && (
-                    <div className="flex items-center gap-1 text-xs text-gray-600">
-                      <IconDislike size={16}/>
-                      <span>{img.dislikesCount}</span>
-                    </div>
+                    <ReactionUsersPopover memeId={img.id} type="dislike" align="right">
+                      <div className="flex items-center gap-1 text-xs text-gray-600">
+                        <IconDislike size={16}/>
+                        <span>{img.dislikesCount}</span>
+                      </div>
+                    </ReactionUsersPopover>
                   )}
                   {(img.commentsCount || 0) > 0 && (
                     <div className="flex items-center gap-1 text-xs text-gray-600">
