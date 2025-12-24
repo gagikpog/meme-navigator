@@ -136,7 +136,6 @@ const Home = () => {
             key={img.fileName}
             to={`/meme/${img.fileName}`}
             className="group relative border rounded-xl overflow-hidden bg-white shadow-sm hover:shadow-md transition-all duration-200 hover:border-gray-300"
-            title={img.description}
           >
             <div className="relative w-full aspect-[4/3] overflow-hidden bg-gray-100">
               <ImageWithAuth
@@ -149,7 +148,7 @@ const Home = () => {
             <div className="p-3 space-y-1">
               <div className="flex items-center justify-between gap-2">
                 {img.description ? (
-                  <p className="text-sm font-medium text-gray-800 truncate">
+                  <p className="text-sm font-medium text-gray-800 truncate" title={img.description}>
                     {img.description}
                   </p>
                 ) : (
