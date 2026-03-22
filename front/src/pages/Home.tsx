@@ -15,6 +15,7 @@ import { Meme } from '../types';
 import IconDislike from '../icons/Dislike';
 import IconLike from '../icons/Like';
 import ReactionUsersPopover from '../components/ReactionUsersPopover';
+import ScrollTop from '../components/ScrollTop';
 
 const Home = () => {
   const { memes, loading } = useMemes();
@@ -129,6 +130,8 @@ const Home = () => {
 
         {filterContent}
       </div>
+
+      <ScrollTop />
 
       <div className="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
         {filteredImages.map((img: Meme) => (

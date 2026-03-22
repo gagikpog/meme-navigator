@@ -69,3 +69,20 @@ code {
 .animate-fadeIn {
   animation: fadeIn 0.3s ease-out;
 }
+
+.scroll-top-text,
+.scroll-top {
+  transition: all 300ms ease-out;
+}
+
+.scroll-top:hover {
+  background-color: #0001;
+}
+
+.scroll-top-text {
+  color: #0000;
+}
+
+.scroll-top:hover .scroll-top-text {
+  color: #000;
+}
